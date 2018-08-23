@@ -1,0 +1,23 @@
+plugins {
+    id 'java'
+}
+
+group 'longdt'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'io.vertx:vertx-core:3.5.3'
+    compile 'io.vertx:vertx-sql-common:3.5.3'
+
+    testCompile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.1'
+    testCompile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.1'
+    testCompile group: 'org.apache.logging.log4j', name: 'log4j-slf4j18-impl', version: '2.11.1'
+    testCompile 'io.vertx:vertx-mysql-postgresql-client:3.5.3'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
