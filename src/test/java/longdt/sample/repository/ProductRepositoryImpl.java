@@ -1,4 +1,4 @@
-package longdt.repository;
+package longdt.sample.repository;
 
 import io.vertx.ext.sql.SQLClient;
 import longdt.repository.impl.AbstractCrudRepository;

@@ -1,4 +1,4 @@
-package longdt.repository;
+package longdt.sample.repository;
 
 import java.time.OffsetDateTime;
 

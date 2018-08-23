@@ -1,4 +1,4 @@
-package longdt.repository;
+package longdt.sample.repository;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -11,9 +11,7 @@ import longdt.util.PageRequest;
 import org.junit.Test;
 
 import java.time.OffsetDateTime;
-import java.util.Optional;
 
-import static org.junit.Assert.*;
 import static longdt.repository.query.QueryFactory.*;
 
 public class ProductRepositoryImplTest {
