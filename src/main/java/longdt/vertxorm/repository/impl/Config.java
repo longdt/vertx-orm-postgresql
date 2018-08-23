@@ -199,7 +199,7 @@ public class Config<ID, E> {
             return this;
         }
 
-        public Builder<ID, E> addTimestampzField(String fieldName, Function<E, OffsetDateTime> getter, BiConsumer<E, OffsetDateTime> setter) {
+        public Builder<ID, E> addTimestampTzField(String fieldName, Function<E, OffsetDateTime> getter, BiConsumer<E, OffsetDateTime> setter) {
             mappings.put(fieldName, new Mapping<>(fieldName, entity ->
                     getter.apply(entity) == null ? null : getter.apply(entity).toString(),
                     (entity, value) -> {

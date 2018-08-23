@@ -10,8 +10,8 @@ public class ProductRepositoryImpl extends AbstractCrudRepository<Long, Product>
                 .pk("id", Product::getId, Product::setId, true)
                 .addField("name", Product::getName, Product::setName)
                 .addField("description", Product::getDescription, Product::setDescription)
-                .addTimestampzField("created_date", Product::getCreatedDate, Product::setCreatedDate)
-                .addTimestampzField("updated_date", Product::getUpdatedDate, Product::setUpdatedDate)
+                .addTimestampTzField("created_date", Product::getCreatedDate, Product::setCreatedDate)
+                .addTimestampTzField("updated_date", Product::getUpdatedDate, Product::setUpdatedDate)
                 .build();
         init(sqlClient, conf);
     }
