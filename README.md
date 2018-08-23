@@ -4,7 +4,7 @@ Usage:
 
 **Step 1: define pojo class**
 ```
-package longdt.sample.repository;
+package longdt.vertxorm.sample.repository;
 
 import java.time.OffsetDateTime;
 
@@ -59,9 +59,9 @@ public class Product {
 
 **Step 2: Define ProductRepository**
 ```
-package longdt.sample.repository;
+package longdt.vertxorm.sample.repository;
 
-import longdt.repository.CrudRepository;
+import longdt.vertxorm.repository.CrudRepository;
 
 public interface ProductRepository extends CrudRepository<Long, Product> {
 
@@ -70,11 +70,11 @@ public interface ProductRepository extends CrudRepository<Long, Product> {
 
 **Step 3: Implement ProductRepository**
 ```
-package longdt.sample.repository;
+package longdt.vertxorm.sample.repository;
 
 import io.vertx.ext.sql.SQLClient;
-import longdt.repository.impl.AbstractCrudRepository;
-import longdt.repository.impl.Config;
+import longdt.vertxorm.repository.impl.AbstractCrudRepository;
+import longdt.vertxorm.repository.impl.Config;
 
 public class ProductRepositoryImpl extends AbstractCrudRepository<Long, Product> implements ProductRepository {
     public ProductRepositoryImpl(SQLClient sqlClient) {
@@ -91,21 +91,21 @@ public class ProductRepositoryImpl extends AbstractCrudRepository<Long, Product>
 ```
 **Step 4: Use ProductRepository in other class**
 ```
-package longdt.sample.repository;
+package longdt.vertxorm.sample.repository;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.AsyncSQLClient;
 import io.vertx.ext.asyncsql.PostgreSQLClient;
-import longdt.repository.query.Query;
-import longdt.util.Futures;
-import longdt.util.Page;
-import longdt.util.PageRequest;
+import longdt.vertxorm.repository.query.Query;
+import longdt.vertxorm.util.Futures;
+import longdt.vertxorm.util.Page;
+import longdt.vertxorm.util.PageRequest;
 import org.junit.Test;
 
 import java.time.OffsetDateTime;
 
-import static longdt.repository.query.QueryFactory.*;
+import static longdt.vertxorm.repository.query.QueryFactory.*;
 
 public class ProductRepositoryImplTest {
     @Test
