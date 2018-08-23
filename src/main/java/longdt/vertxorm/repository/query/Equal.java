@@ -1,4 +1,4 @@
-package longdt.repository.query;
+package longdt.vertxorm.repository.query;
 
 import io.vertx.core.json.JsonArray;
 

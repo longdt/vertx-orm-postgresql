@@ -1,8 +1,8 @@
-package longdt.sample.repository;
+package longdt.vertxorm.sample.repository;
 
 import io.vertx.ext.sql.SQLClient;
-import longdt.repository.impl.AbstractCrudRepository;
-import longdt.repository.impl.Config;
+import longdt.vertxorm.repository.impl.AbstractCrudRepository;
+import longdt.vertxorm.repository.impl.Config;
 
 public class ProductRepositoryImpl extends AbstractCrudRepository<Long, Product> implements ProductRepository {
     public ProductRepositoryImpl(SQLClient sqlClient) {

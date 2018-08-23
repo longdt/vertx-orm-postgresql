@@ -1,4 +1,4 @@
-package longdt.repository.query;
+package longdt.vertxorm.repository.query;
 
 public abstract class SingleQuery<E> implements Query<E> {
     protected String fieldName;

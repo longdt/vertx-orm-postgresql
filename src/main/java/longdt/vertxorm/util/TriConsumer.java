@@ -1,4 +1,4 @@
-package longdt.util;
+package longdt.vertxorm.util;
 
 public interface TriConsumer<T, U, V> {
 

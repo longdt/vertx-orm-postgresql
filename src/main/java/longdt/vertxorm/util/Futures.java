@@ -1,4 +1,4 @@
-package longdt.util;
+package longdt.vertxorm.util;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;

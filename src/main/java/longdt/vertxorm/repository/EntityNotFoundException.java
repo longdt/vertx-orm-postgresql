@@ -1,4 +1,4 @@
-package longdt.repository;
+package longdt.vertxorm.repository;
 
 public class EntityNotFoundException extends RuntimeException {
 

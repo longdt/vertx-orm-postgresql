@@ -1,12 +1,12 @@
-package longdt.repository;
+package longdt.vertxorm.repository;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import longdt.repository.query.Query;
-import longdt.util.Futures;
-import longdt.util.Page;
-import longdt.util.PageRequest;
+import longdt.vertxorm.repository.query.Query;
+import longdt.vertxorm.util.Futures;
+import longdt.vertxorm.util.Page;
+import longdt.vertxorm.util.PageRequest;
 import java.util.List;
 import java.util.Optional;
 

@@ -1,18 +1,17 @@
-package longdt.sample.repository;
+package longdt.vertxorm.sample.repository;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.AsyncSQLClient;
 import io.vertx.ext.asyncsql.PostgreSQLClient;
-import longdt.repository.query.Query;
-import longdt.util.Futures;
-import longdt.util.Page;
-import longdt.util.PageRequest;
+import longdt.vertxorm.repository.query.Query;
+import longdt.vertxorm.util.Futures;
+import longdt.vertxorm.util.Page;
+import longdt.vertxorm.util.PageRequest;
+import longdt.vertxorm.repository.query.QueryFactory;
 import org.junit.Test;
 
 import java.time.OffsetDateTime;
-
-import static longdt.repository.query.QueryFactory.*;
 
 public class ProductRepositoryImplTest {
     @Test
@@ -42,7 +41,7 @@ public class ProductRepositoryImplTest {
         });
 //        Thread.sleep(5000);
         PageRequest pageRequest = new PageRequest(1, 20);
-        Query<Product> query = equal("name", "car");
+        Query<Product> query = QueryFactory.equal("name", "car");
         Page<Product> products = Futures.sync(productRepository::getPage, pageRequest, query);
         System.out.println(products.getTotalCount());
     }

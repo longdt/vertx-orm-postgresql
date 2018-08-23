@@ -1,4 +1,4 @@
-package longdt.repository.impl;
+package longdt.vertxorm.repository.impl;
 
 import io.vertx.core.json.JsonArray;
 

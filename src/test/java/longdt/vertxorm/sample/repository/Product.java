@@ -1,4 +1,4 @@
-package longdt.sample.repository;
+package longdt.vertxorm.sample.repository;
 
 import java.time.OffsetDateTime;
 

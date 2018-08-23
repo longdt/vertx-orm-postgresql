@@ -1,4 +1,4 @@
-package longdt.repository.impl;
+package longdt.vertxorm.repository.impl;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.CompositeFuture;
@@ -7,12 +7,12 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.SQLClient;
-import longdt.repository.CrudRepository;
-import longdt.repository.EntityNotFoundException;
-import longdt.util.Page;
-import longdt.util.PageRequest;
-import longdt.repository.query.Query;
-import longdt.util.Futures;
+import longdt.vertxorm.repository.CrudRepository;
+import longdt.vertxorm.repository.EntityNotFoundException;
+import longdt.vertxorm.util.Page;
+import longdt.vertxorm.util.PageRequest;
+import longdt.vertxorm.repository.query.Query;
+import longdt.vertxorm.util.Futures;
 
 import java.util.List;
 import java.util.Optional;
