@@ -4,6 +4,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import longdt.vertxorm.repository.query.Query;
+import longdt.vertxorm.repository.query.RawQuery;
 import longdt.vertxorm.util.Futures;
 import longdt.vertxorm.util.Page;
 import longdt.vertxorm.util.PageRequest;
@@ -59,7 +60,9 @@ public interface CrudRepository<ID, E> {
         return Futures.toFuture(this::querySingle, query);
     }
 
-    void getPage(PageRequest pageRequest, Handler<AsyncResult<Page<E>>> resultHandler);
+    default void getPage(PageRequest pageRequest, Handler<AsyncResult<Page<E>>> resultHandler) {
+        getPage(pageRequest, new RawQuery<>(null), resultHandler);
+    }
 
     default Future<Page<E>> getPage(PageRequest pageRequest) {
         return Futures.toFuture(this::getPage, pageRequest);

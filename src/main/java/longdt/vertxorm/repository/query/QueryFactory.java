@@ -1,5 +1,7 @@
 package longdt.vertxorm.repository.query;
 
+import io.vertx.core.json.JsonArray;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -59,5 +61,77 @@ public class QueryFactory {
         queries.add(query2);
         queries.addAll(additionalQueries);
         return new And<E>(queries);
+    }
+
+
+    /**
+     * Creates an {@link Or} query, representing a logical OR on child queries, which when evaluated yields the
+     * <u>set union</u> of the result sets from child queries.
+     *
+     * @param query1 The first child query to be connected via a logical OR
+     * @param query2 The second child query to be connected via a logical OR
+     * @param <O> The type of the object containing attributes to which child queries refer
+     * @return An {@link Or} query, representing a logical OR on child queries
+     */
+    public static <O> Or<O> or(Query<O> query1, Query<O> query2) {
+        @SuppressWarnings({"unchecked"})
+        Collection<Query<O>> queries = Arrays.asList(query1, query2);
+        return new Or<O>(queries);
+    }
+
+    /**
+     * Creates an {@link Or} query, representing a logical OR on child queries, which when evaluated yields the
+     * <u>set union</u> of the result sets from child queries.
+     *
+     * @param query1 The first child query to be connected via a logical OR
+     * @param query2 The second child query to be connected via a logical OR
+     * @param additionalQueries Additional child queries to be connected via a logical OR
+     * @param <O> The type of the object containing attributes to which child queries refer
+     * @return An {@link Or} query, representing a logical OR on child queries
+     */
+    public static <O> Or<O> or(Query<O> query1, Query<O> query2, Query<O>... additionalQueries) {
+        Collection<Query<O>> queries = new ArrayList<Query<O>>(2 + additionalQueries.length);
+        queries.add(query1);
+        queries.add(query2);
+        Collections.addAll(queries, additionalQueries);
+        return new Or<O>(queries);
+    }
+
+    /**
+     * Creates an {@link Or} query, representing a logical OR on child queries, which when evaluated yields the
+     * <u>set union</u> of the result sets from child queries.
+     *
+     * @param query1 The first child query to be connected via a logical OR
+     * @param query2 The second child query to be connected via a logical OR
+     * @param additionalQueries Additional child queries to be connected via a logical OR
+     * @param <O> The type of the object containing attributes to which child queries refer
+     * @return An {@link Or} query, representing a logical OR on child queries
+     */
+    public static <O> Or<O> or(Query<O> query1, Query<O> query2, Collection<Query<O>> additionalQueries) {
+        Collection<Query<O>> queries = new ArrayList<Query<O>>(2 + additionalQueries.size());
+        queries.add(query1);
+        queries.add(query2);
+        queries.addAll(additionalQueries);
+        return new Or<O>(queries);
+    }
+
+    public static <O> Has<O> has(String fieldName) {
+        return new Has<>(fieldName);
+    }
+
+    public static <O> IsNull<O> isNull(String fieldName) {
+        return new IsNull<>(fieldName);
+    }
+
+    public static <O> RawQuery<O> raw(String querySql, Object... params) {
+        return new RawQuery<>(querySql, new JsonArray(Arrays.asList(params)));
+    }
+
+    public static <O> Order<O> ascending(String fieldName) {
+        return new Order<>(fieldName);
+    }
+
+    public static <O> Order<O> descending(String fieldName) {
+        return new Order<>(fieldName, true);
     }
 }

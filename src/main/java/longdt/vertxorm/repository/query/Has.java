@@ -4,21 +4,19 @@ import io.vertx.core.json.JsonArray;
 
 import java.util.Collections;
 
-public class Equal<E> extends SingleQuery<E> {
-    private Object value;
+public class Has<E> extends SingleQuery<E> {
 
-    public Equal(String fieldName, Object value) {
+    public Has(String fieldName) {
         super(fieldName);
-        this.value = value;
     }
 
     @Override
     public String getConditionSql() {
-        return "\"" + fieldName + "\"=?";
+        return "\"" + fieldName + "\" is not null";
     }
 
     @Override
     public JsonArray getConditionParams() {
-        return new JsonArray(Collections.singletonList(value));
+        return new JsonArray(Collections.emptyList());
     }
 }

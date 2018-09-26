@@ -1,7 +1,10 @@
 package longdt.vertxorm.repository.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -117,6 +120,7 @@ public class Config<ID, E> {
         private Function<E, ?> getter;
         private BiConsumer<E, Object> setter;
 
+        @SuppressWarnings("unchecked")
         public Mapping(String fieldName, Function<E, ?> getter, BiConsumer<E, T> setter) {
             this.fieldName = fieldName;
             this.getter = getter;
@@ -167,8 +171,35 @@ public class Config<ID, E> {
             return this;
         }
 
-        public <T> Builder<ID, E> addField(String fieldName, Function<E, ?> getter, BiConsumer<E, T> setter) {
+        public <T> Builder<ID, E> addField(String fieldName, Function<E, T> getter, BiConsumer<E, T> setter) {
             mappings.put(fieldName, new Mapping<>(fieldName, getter, setter));
+            return this;
+        }
+
+        public <T> Builder<ID, E> addJsonField(String fieldName, Function<E, T> getter, BiConsumer<E, T> setter, Class<T> clazz) {
+            mappings.put(fieldName, new Mapping<>(fieldName, entity ->
+                    getter.apply(entity) == null ? null : Json.encode(getter.apply(entity)),
+                    (entity, value) -> {
+                        if (value != null) setter.accept(entity, Json.decodeValue((String) value, clazz));
+                    }));
+            return this;
+        }
+
+        public <T> Builder<ID, E> addJsonField(String fieldName, Function<E, T> getter, BiConsumer<E, T> setter, TypeReference<T> type) {
+            mappings.put(fieldName, new Mapping<>(fieldName, entity ->
+                    getter.apply(entity) == null ? null : Json.encode(getter.apply(entity)),
+                    (entity, value) -> {
+                        if (value != null) setter.accept(entity, Json.decodeValue((String) value, type));
+                    }));
+            return this;
+        }
+
+        public Builder<ID, E> addDecimalField(String fieldName, Function<E, BigDecimal> getter, BiConsumer<E, BigDecimal> setter) {
+            mappings.put(fieldName, new Mapping<>(fieldName, entity ->
+                    getter.apply(entity) == null ? null : getter.apply(entity).toString(),
+                    (entity, value) -> {
+                        if (value != null) setter.accept(entity, new BigDecimal((String) value));
+                    }));
             return this;
         }
 

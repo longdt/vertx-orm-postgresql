@@ -63,6 +63,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void insert(E entity, Handler<AsyncResult<E>> resultHandler) {
         JsonArray params = conf.toJsonArray(entity, !conf.isPkAutoGen());
         sqlClient.queryWithParams(insertSql, params, res -> {
@@ -156,41 +157,28 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
 
     @Override
     public void query(Query<E> query, Handler<AsyncResult<List<E>>> resultHandler) {
-        String queryStr = where(querySql, query);
-        sqlClient.queryWithParams(queryStr, query.getParams(), toList(resultHandler));
+        String queryStr = toSQL(querySql, query);
+        JsonArray params = getSqlParams(query);
+        sqlClient.queryWithParams(queryStr, params, toList(resultHandler));
     }
 
     @Override
     public void querySingle(Query<E> query, Handler<AsyncResult<Optional<E>>> resultHandler) {
-        String queryStr = where(querySql, query);
-        sqlClient.querySingleWithParams(queryStr, query.getParams(), toEntity(resultHandler));
+        String queryStr = toSQL(querySql, query);
+        JsonArray params = getSqlParams(query);
+        sqlClient.querySingleWithParams(queryStr, params, toEntity(resultHandler));
     }
 
-    @Override
-    public void getPage(PageRequest pageRequest, Handler<AsyncResult<Page<E>>> resultHandler) {
-        JsonArray params = new JsonArray().add(pageRequest.getSize()).add(pageRequest.getOffset());
-        Future<Integer> count = Futures.toFuture(sqlClient::querySingle, countSql).map(rs -> rs.getInteger(0));
-        Future<ResultSet> pageResult = Future.future();
-        sqlClient.queryWithParams(querySql + pageSql, params, pageResult);
-        Future<List<E>> entities = pageResult.map(rs -> rs.getResults().stream()
-                .map(conf::toEntity).collect(Collectors.toList()));
-
-        CompositeFuture.all(count, entities).map(cf -> new Page<E>(pageRequest, cf.resultAt(0), cf.resultAt(1))).setHandler(ar -> {
-            if (ar.failed()) {
-                resultHandler.handle(Future.failedFuture(ar.cause()));
-            } else {
-                resultHandler.handle(Future.succeededFuture(ar.result()));
-            }
-        });
-    }
 
     @Override
     public void getPage(PageRequest pageRequest, Query<E> query, Handler<AsyncResult<Page<E>>> resultHandler) {
-        Future<Integer> count = Futures.toFuture(sqlClient::querySingleWithParams, where(countSql, query), query.getParams())
+        Future<Integer> count = Futures.toFuture(sqlClient::querySingleWithParams, where(countSql, query), query.getConditionParams())
                 .map(rs -> rs.getInteger(0));
         Future<ResultSet> pageResult = Future.future();
-        JsonArray params = new JsonArray().addAll(query.getParams()).add(pageRequest.getSize()).add(pageRequest.getOffset());
-        sqlClient.queryWithParams(where(querySql, query) + pageSql, params, pageResult);
+        query.limit(pageRequest.getSize()).offset(pageRequest.getOffset());
+        String queryStr = toSQL(querySql, query);
+        JsonArray params = getSqlParams(query);
+        sqlClient.queryWithParams(queryStr, params, pageResult);
         Future<List<E>> entities = pageResult.map(rs -> rs.getResults().stream()
                 .map(conf::toEntity).collect(Collectors.toList()));
 
@@ -203,9 +191,51 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
         });
     }
 
-    public String where(String sql, Query<E> query) {
-        return sql + " WHERE " + query.getQuerySql();
+    private String where(String sql, Query<E> query) {
+        String condition = query.getConditionSql();
+        if (condition != null) {
+            sql = sql + " WHERE " + query.getConditionSql();
+        }
+        return sql;
     }
+
+    private String toSQL(String sql, Query<E> query) {
+        StringBuilder queryStr = new StringBuilder(sql);
+        String condition = query.getConditionSql();
+        if (condition != null) {
+            queryStr.append(" WHERE ").append(condition);
+        }
+        if (query.orderBy() != null && !query.orderBy().isEmpty()) {
+            queryStr.append(" ORDER BY ");
+            query.orderBy().forEach(o -> queryStr.append("\"").append(o.getFieldName()).append("\" ")
+                .append(o.isDescending() ? "DESC," : "ASC,"));
+            queryStr.deleteCharAt(queryStr.length() - 1);
+        }
+
+        if (query.limit() >= 0) {
+            queryStr.append(" LIMIT ?");
+        }
+        if (query.offset() >= 0) {
+            queryStr.append(" OFFSET ?");
+        }
+        return queryStr.toString();
+    }
+
+
+    private JsonArray getSqlParams(Query<E> query) {
+        if (query.limit() < 0 && query.offset() < 0) {
+            return query.getConditionParams();
+        }
+        JsonArray params = new JsonArray().addAll(query.getConditionParams());
+        if (query.limit() >= 0) {
+            params.add(query.limit());
+        }
+        if (query.offset() >= 0) {
+            params.add(query.offset());
+        }
+        return params;
+    }
+
 
     public Config<ID, E> getConf() {
         return conf;
