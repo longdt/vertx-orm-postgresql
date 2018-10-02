@@ -9,10 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -121,7 +118,7 @@ public class Config<ID, E> {
         private BiConsumer<E, Object> setter;
 
         @SuppressWarnings("unchecked")
-        public Mapping(String fieldName, Function<E, ?> getter, BiConsumer<E, T> setter) {
+        public Mapping(String fieldName, Function<E, T> getter, BiConsumer<E, T> setter) {
             this.fieldName = fieldName;
             this.getter = getter;
             this.setter = (e, t) -> setter.accept(e, (T) t);
@@ -176,11 +173,20 @@ public class Config<ID, E> {
             return this;
         }
 
+        public Builder<ID, E> addUuidField(String fieldName, Function<E, UUID> getter, BiConsumer<E, UUID> setter) {
+            mappings.put(fieldName, new Mapping<>(fieldName, entity ->
+                    getter.apply(entity) == null ? null : getter.apply(entity).toString(),
+                    (entity, value) -> {
+                        if (value != null) setter.accept(entity, UUID.fromString(value));
+                    }));
+            return this;
+        }
+
         public <T> Builder<ID, E> addJsonField(String fieldName, Function<E, T> getter, BiConsumer<E, T> setter, Class<T> clazz) {
             mappings.put(fieldName, new Mapping<>(fieldName, entity ->
                     getter.apply(entity) == null ? null : Json.encode(getter.apply(entity)),
                     (entity, value) -> {
-                        if (value != null) setter.accept(entity, Json.decodeValue((String) value, clazz));
+                        if (value != null) setter.accept(entity, Json.decodeValue(value, clazz));
                     }));
             return this;
         }
@@ -189,7 +195,7 @@ public class Config<ID, E> {
             mappings.put(fieldName, new Mapping<>(fieldName, entity ->
                     getter.apply(entity) == null ? null : Json.encode(getter.apply(entity)),
                     (entity, value) -> {
-                        if (value != null) setter.accept(entity, Json.decodeValue((String) value, type));
+                        if (value != null) setter.accept(entity, Json.decodeValue(value, type));
                     }));
             return this;
         }
@@ -198,7 +204,7 @@ public class Config<ID, E> {
             mappings.put(fieldName, new Mapping<>(fieldName, entity ->
                     getter.apply(entity) == null ? null : getter.apply(entity).toString(),
                     (entity, value) -> {
-                        if (value != null) setter.accept(entity, new BigDecimal((String) value));
+                        if (value != null) setter.accept(entity, new BigDecimal(value));
                     }));
             return this;
         }
@@ -207,7 +213,7 @@ public class Config<ID, E> {
             mappings.put(fieldName, new Mapping<>(fieldName, entity ->
                     getter.apply(entity) == null ? null : getter.apply(entity).toString(),
                     (entity, value) -> {
-                        if (value != null) setter.accept(entity, LocalDate.parse((CharSequence) value));
+                        if (value != null) setter.accept(entity, LocalDate.parse(value));
                     }));
             return this;
         }
@@ -216,7 +222,7 @@ public class Config<ID, E> {
             mappings.put(fieldName, new Mapping<>(fieldName, entity ->
                     getter.apply(entity) == null ? null : getter.apply(entity).toString(),
                     (entity, value) -> {
-                        if (value != null) setter.accept(entity, LocalTime.parse((CharSequence) value));
+                        if (value != null) setter.accept(entity, LocalTime.parse(value));
                     }));
             return this;
         }
@@ -225,7 +231,7 @@ public class Config<ID, E> {
             mappings.put(fieldName, new Mapping<>(fieldName, entity ->
                     getter.apply(entity) == null ? null : getter.apply(entity).toString(),
                     (entity, value) -> {
-                        if (value != null) setter.accept(entity, LocalDateTime.parse((CharSequence) value));
+                        if (value != null) setter.accept(entity, LocalDateTime.parse(value));
                     }));
             return this;
         }
@@ -234,7 +240,7 @@ public class Config<ID, E> {
             mappings.put(fieldName, new Mapping<>(fieldName, entity ->
                     getter.apply(entity) == null ? null : getter.apply(entity).toString(),
                     (entity, value) -> {
-                        if (value != null) setter.accept(entity, OffsetDateTime.parse((CharSequence) value));
+                        if (value != null) setter.accept(entity, OffsetDateTime.parse(value));
                     }));
             return this;
         }
