@@ -114,14 +114,14 @@ public class Config<ID, E> {
 
     public static class Mapping<E, T> {
         private String fieldName;
-        private Function<E, ?> getter;
-        private BiConsumer<E, Object> setter;
+        private Function<E, T> getter;
+        private BiConsumer<E, T> setter;
 
         @SuppressWarnings("unchecked")
         public Mapping(String fieldName, Function<E, T> getter, BiConsumer<E, T> setter) {
             this.fieldName = fieldName;
             this.getter = getter;
-            this.setter = (e, t) -> setter.accept(e, (T) t);
+            this.setter = setter;
         }
 
         public String getFieldName() {
@@ -133,7 +133,7 @@ public class Config<ID, E> {
         }
 
         public void set(E entity, Object value) {
-            setter.accept(entity, value);
+            setter.accept(entity, (T) value);
         }
     }
 

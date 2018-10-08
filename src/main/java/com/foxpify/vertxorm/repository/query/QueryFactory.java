@@ -2,10 +2,7 @@ package com.foxpify.vertxorm.repository.query;
 
 import io.vertx.core.json.JsonArray;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 
 public class QueryFactory {
     public static <E> Equal<E> equal(String fieldName, Object value) {
@@ -134,4 +131,44 @@ public class QueryFactory {
     public static <O> Order<O> descending(String fieldName) {
         return new Order<>(fieldName, true);
     }
+
+    /**
+     * <p> Creates a {@link In} query which asserts that an attribute has at least one value matching any value in a set of values.
+     *
+     * @param attribute The attribute to which the query refers
+     * @param attributeValues The set of values to match
+     * @param <A> The type of the attribute
+     * @param <O> The type of the object containing the attribute
+     * @return An {@link In} query
+     */
+    public static <O, A> Query<O> in(String attribute, A... attributeValues) {
+        return in(attribute, Arrays.asList(attributeValues));
+    }
+
+    /**
+     * <p> Creates a {@link In} query which asserts that an attribute has at least one value matching any value in a set of values.
+     *
+     * @param attribute The attribute to which the query refers
+     * @param attributeValues TThe set of values to match
+     * @param <A> The type of the attribute
+     * @param <O> The type of the object containing the attribute
+     * @return An {@link In} query
+     */
+    public static <O, A> Query<O> in(String attribute, List<A> attributeValues) {
+        int n = attributeValues.size();
+        switch (n) {
+            case 0:
+                return none();
+            case 1:
+                A singleValue = attributeValues.iterator().next();
+                return equal(attribute, singleValue);
+            default:
+                return new In<>(attribute, attributeValues);
+        }
+    }
+
+    public static <O> Query<O> none() {
+        return raw("FALSE");
+    }
+
 }
