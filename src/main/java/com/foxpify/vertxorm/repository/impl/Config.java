@@ -132,6 +132,7 @@ public class Config<ID, E> {
             return getter.apply(entity);
         }
 
+        @SuppressWarnings("unchecked")
         public void set(E entity, Object value) {
             setter.accept(entity, (T) value);
         }
@@ -157,9 +158,6 @@ public class Config<ID, E> {
         }
 
         public Builder<ID, E> pk(String pkName, Function<E, ID> pkGetter, BiConsumer<E, ID> pkSetter, boolean autogen) {
-            if (this.pkName != null) {
-                mappings.remove(pkName);
-            }
             this.pkName = pkName;
             this.pkGetter = pkGetter;
             this.pkSetter = pkSetter;

@@ -65,10 +65,13 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
     @Override
     @SuppressWarnings("unchecked")
     public void insert(E entity, Handler<AsyncResult<E>> resultHandler) {
-        JsonArray params = conf.toJsonArray(entity, !conf.isPkAutoGen());
+        boolean genPk = conf.isPkAutoGen() && conf.getId(entity) == null;
+        JsonArray params = conf.toJsonArray(entity, !genPk);
         sqlClient.queryWithParams(insertSql, params, res -> {
             if (res.succeeded()) {
-                conf.setId(entity, (ID) res.result().getResults().get(0).getValue(0));
+                if (genPk) {
+                    conf.setId(entity, (ID) res.result().getResults().get(0).getValue(0));
+                }
                 resultHandler.handle(Future.succeededFuture(entity));
             } else {
                 resultHandler.handle(Future.failedFuture(res.cause()));
