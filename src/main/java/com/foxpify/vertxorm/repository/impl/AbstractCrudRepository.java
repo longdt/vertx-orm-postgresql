@@ -26,7 +26,6 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
     private String insertSql;
     private String updateSql;
     private String querySql;
-    private String pageSql;
     private String countSql;
 
     public void init(SQLClient sqlClient, Config<ID, E> conf) {
@@ -50,7 +49,6 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
         querySql = "SELECT " + conf.getColumnNames().stream().map(c -> "\"" + c + "\"").collect(Collectors.joining(","))
                 + " FROM \"" + conf.tableName() + "\"";
         countSql = "SELECT count(*) FROM \"" + conf.tableName() + "\"";
-        pageSql = " LIMIT ? OFFSET ?";
     }
 
     @Override
