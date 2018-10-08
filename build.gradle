@@ -15,8 +15,8 @@ repositories {
 }
 
 dependencies {
-    compile 'io.vertx:vertx-core:3.5.3'
-    compile 'io.vertx:vertx-sql-common:3.5.3'
+    compile 'io.vertx:vertx-core:3.5.4'
+    compile 'io.vertx:vertx-sql-common:3.5.4'
 
     compile 'com.dslplatform:dsl-json-java8:1.8.2'
     annotationProcessor 'com.dslplatform:dsl-json-java8:1.8.2'
@@ -24,7 +24,7 @@ dependencies {
     testCompile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.1'
     testCompile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.1'
     testCompile group: 'org.apache.logging.log4j', name: 'log4j-slf4j18-impl', version: '2.11.1'
-    testCompile 'io.vertx:vertx-mysql-postgresql-client:3.5.3'
+    testCompile 'io.vertx:vertx-mysql-postgresql-client:3.5.4'
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 

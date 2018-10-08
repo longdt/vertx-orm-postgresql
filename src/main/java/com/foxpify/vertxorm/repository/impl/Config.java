@@ -18,10 +18,10 @@ import java.util.stream.Collectors;
 public class Config<ID, E> {
     private String tableName;
     private Supplier<E> supplier;
-    private String pkName;
     private boolean pkAutoGen;
     private Function<E, ID> pkGetter;
-    private BiConsumer<E, ID> pkSetter;
+    private Mapping<E, ?> pkConverter;
+    private Function<ID, ?> pkGetConverter;
     private List<String> columnNames;
     private List<String> columnNamesPlusPK;
     private List<Mapping<E, ?>> mappings;
@@ -30,21 +30,22 @@ public class Config<ID, E> {
     public Config(Builder<ID, E> builder) {
         this.tableName = builder.tableName;
         this.supplier = builder.supplier;
-        this.pkName = builder.pkName;
         this.pkAutoGen = builder.pkAutoGen;
         this.pkGetter = builder.pkGetter;
-        this.pkSetter = builder.pkSetter;
+        this.pkGetConverter = builder.pkGetConverter;
+        this.pkConverter = builder.pkConverter;
+        String pkName = builder.pkName;
         columnNames = builder.mappings.keySet().stream().filter(c -> !pkName.equals(c)).collect(Collectors.toList());
 
         columnNamesPlusPK = new ArrayList<>(columnNames.size() + 1);
-        columnNamesPlusPK.add(pkName);
         columnNamesPlusPK.addAll(columnNames);
+        columnNamesPlusPK.add(pkName);
 
         mappings = builder.mappings.values().stream()
                 .filter(m -> !pkName.equals(m.fieldName)).collect(Collectors.toList());
         mappingsPlusPK = new ArrayList<>(mappings.size() + 1);
-        mappingsPlusPK.add(new Mapping<>(pkName, pkGetter, pkSetter));
         mappingsPlusPK.addAll(mappings);
+        mappingsPlusPK.add(pkConverter);
     }
 
     public String tableName() {
@@ -56,7 +57,7 @@ public class Config<ID, E> {
     }
 
     public String pkName() {
-        return pkName;
+        return pkConverter.fieldName;
     }
 
     public boolean isPkAutoGen() {
@@ -83,8 +84,12 @@ public class Config<ID, E> {
         return pkGetter.apply(entity);
     }
 
-    public void setId(E entity, ID id) {
-        pkSetter.accept(entity, id);
+    public Object id2DbValue(ID id) {
+        return pkGetConverter.apply(id);
+    }
+
+    public void setId(E entity, Object id) {
+        pkConverter.set(entity, id);
     }
 
     public E toEntity(JsonArray rs) {
@@ -145,6 +150,8 @@ public class Config<ID, E> {
         private boolean pkAutoGen;
         private Function<E, ID> pkGetter;
         private BiConsumer<E, ID> pkSetter;
+        private Mapping<E, ?> pkConverter;
+        private Function<ID, ?> pkGetConverter;
         private Map<String, Mapping<E, ?>> mappings;
 
         public Builder(String tableName, Supplier<E> supplier) {
@@ -162,7 +169,20 @@ public class Config<ID, E> {
             this.pkGetter = pkGetter;
             this.pkSetter = pkSetter;
             this.pkAutoGen = autogen;
-            mappings.put(pkName, new Mapping<>(pkName, pkGetter, pkSetter));
+            pkConverter = new Mapping<>(pkName, pkGetter, pkSetter);
+            pkGetConverter = Function.identity();
+            mappings.put(pkName, pkConverter);
+            return this;
+        }
+
+        public <T> Builder<ID, E> pkConverter(Function<ID, T> pkGetConverter, Function<T, ID> pkSetConverter) {
+            Objects.requireNonNull(pkName);
+            this.pkGetConverter = pkGetConverter;
+            pkConverter =
+                    new Mapping<>(pkName,
+                            entity -> pkGetConverter.apply(pkGetter.apply(entity)),
+                            (entity, value) -> pkSetter.accept(entity, pkSetConverter.apply(value)));
+            mappings.put(pkName, pkConverter);
             return this;
         }
 

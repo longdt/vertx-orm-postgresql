@@ -9,10 +9,11 @@ import io.vertx.ext.asyncsql.PostgreSQLClient;
 import com.foxpify.vertxorm.repository.query.Query;
 import com.foxpify.vertxorm.util.PageRequest;
 import com.foxpify.vertxorm.repository.query.QueryFactory;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.time.OffsetDateTime;
-
+@Ignore
 public class ProductRepositoryImplTest {
     @Test
     public void createAndGet() throws InterruptedException {

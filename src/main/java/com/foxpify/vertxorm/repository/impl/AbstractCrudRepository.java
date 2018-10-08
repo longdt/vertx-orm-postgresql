@@ -24,6 +24,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
     private String deleteSql;
     private String upsertSql;
     private String insertSql;
+    private String insertPkSql;
     private String updateSql;
     private String querySql;
     private String countSql;
@@ -39,10 +40,17 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 + " ON CONFLICT (\"" + conf.pkName() + "\") DO UPDATE SET "
                 + conf.getColumnNames(false).stream().map(c -> "\"" + c + "\" = EXCLUDED.\"" + c + "\"").collect(Collectors.joining(", "));
         insertSql = "INSERT INTO \"" + conf.tableName() + "\" "
-                + conf.getColumnNames(!conf.isPkAutoGen()).stream().map(c -> "\"" + c + "\"").collect(Collectors.joining(",", "(", ")"))
+                + conf.getColumnNames(false).stream().map(c -> "\"" + c + "\"").collect(Collectors.joining(",", "(", ")"))
                 + " VALUES "
-                + conf.getColumnNames(!conf.isPkAutoGen()).stream().map(c -> "?").collect(Collectors.joining(",", "(", ")"))
+                + conf.getColumnNames(false).stream().map(c -> "?").collect(Collectors.joining(",", "(", ")"))
                 + " RETURNING \"" + conf.pkName() + "\"";
+
+        insertPkSql = "INSERT INTO \"" + conf.tableName() + "\" "
+                + conf.getColumnNames().stream().map(c -> "\"" + c + "\"").collect(Collectors.joining(",", "(", ")"))
+                + " VALUES "
+                + conf.getColumnNames().stream().map(c -> "?").collect(Collectors.joining(",", "(", ")"))
+                + " RETURNING \"" + conf.pkName() + "\"";
+
         updateSql = "UPDATE \"" + conf.tableName() + "\""
                 + " SET " + conf.getColumnNames(false).stream().map(c -> "\"" + c + "\" = ?").collect(Collectors.joining(","))
                 + " WHERE \"" + conf.pkName() + "\" = ?";
@@ -65,10 +73,11 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
     public void insert(E entity, Handler<AsyncResult<E>> resultHandler) {
         boolean genPk = conf.isPkAutoGen() && conf.getId(entity) == null;
         JsonArray params = conf.toJsonArray(entity, !genPk);
-        sqlClient.queryWithParams(insertSql, params, res -> {
+        String sql = genPk ? insertSql : insertPkSql;
+        sqlClient.querySingleWithParams(sql, params, res -> {
             if (res.succeeded()) {
                 if (genPk) {
-                    conf.setId(entity, (ID) res.result().getResults().get(0).getValue(0));
+                    conf.setId(entity, res.result().getValue(0));
                 }
                 resultHandler.handle(Future.succeededFuture(entity));
             } else {
@@ -79,8 +88,8 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
 
     @Override
     public void update(E entity, Handler<AsyncResult<E>> resultHandler) {
-        JsonArray params = conf.toJsonArray(entity, false).add(conf.getId(entity));
-        sqlClient.queryWithParams(updateSql, params, res -> {
+        JsonArray params = conf.toJsonArray(entity);
+        sqlClient.querySingleWithParams(updateSql, params, res -> {
             if (res.succeeded()) {
                 resultHandler.handle(Future.succeededFuture(entity));
             } else {
@@ -101,7 +110,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
     }
 
     public void delete(ID id, Handler<AsyncResult<Void>> resultHandler) {
-        sqlClient.updateWithParams(deleteSql, new JsonArray().add(id), res -> {
+        sqlClient.updateWithParams(deleteSql, new JsonArray().add(conf.id2DbValue(id)), res -> {
             if (res.succeeded()) {
                 if(res.result().getUpdated() != 1) {
                     resultHandler.handle(Future.failedFuture(new EntityNotFoundException("Entity " + id + " is not found")));
@@ -117,7 +126,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
     @Override
     public void find(ID id, Handler<AsyncResult<Optional<E>>> resultHandler) {
         String query = querySql + " WHERE \"" + conf.pkName() + "\"=?";
-        sqlClient.querySingleWithParams(query, new JsonArray().add(id), toEntity(resultHandler));
+        sqlClient.querySingleWithParams(query, new JsonArray().add(conf.id2DbValue(id)), toEntity(resultHandler));
     }
 
     private Handler<AsyncResult<ResultSet>> toList(Handler<AsyncResult<List<E>>> resultHandler) {
