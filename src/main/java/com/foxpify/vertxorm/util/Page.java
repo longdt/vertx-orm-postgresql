@@ -11,11 +11,19 @@ public class Page<E> {
    private int totalCount;
    private List<E> content;
 
+   @CompiledJson
+   Page(int currentPage, int pageSize, int totalPage, int totalCount, List<E> content) {
+      this.currentPage = currentPage;
+      this.pageSize = pageSize;
+      this.totalPage = totalPage;
+      this.totalCount = totalCount;
+      this.content = content;
+   }
+
    public Page(PageRequest pageRequest, int totalCount, List<E> content) {
       this(pageRequest.getIndex(), pageRequest.getSize(), totalCount,content);
    }
 
-   @CompiledJson
    public Page(int currentPage, int pageSize, int totalCount, List<E> content) {
       this.currentPage = currentPage;
       this.pageSize = pageSize;
