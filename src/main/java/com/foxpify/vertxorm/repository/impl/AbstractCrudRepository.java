@@ -166,14 +166,14 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
     }
 
     @Override
-    public void query(Query<E> query, Handler<AsyncResult<List<E>>> resultHandler) {
+    public void findAll(Query<E> query, Handler<AsyncResult<List<E>>> resultHandler) {
         String queryStr = toSQL(querySql, query);
         JsonArray params = getSqlParams(query);
         sqlClient.queryWithParams(queryStr, params, toList(resultHandler));
     }
 
     @Override
-    public void querySingle(Query<E> query, Handler<AsyncResult<Optional<E>>> resultHandler) {
+    public void find(Query<E> query, Handler<AsyncResult<Optional<E>>> resultHandler) {
         String queryStr = toSQL(querySql, query);
         JsonArray params = getSqlParams(query);
         sqlClient.querySingleWithParams(queryStr, params, toEntity(resultHandler));
@@ -181,7 +181,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
 
 
     @Override
-    public void getPage(PageRequest pageRequest, Query<E> query, Handler<AsyncResult<Page<E>>> resultHandler) {
+    public void findAll(Query<E> query, PageRequest pageRequest, Handler<AsyncResult<Page<E>>> resultHandler) {
         Future<Integer> count = Futures.toFuture(sqlClient::querySingleWithParams, where(countSql, query), query.getConditionParams())
                 .map(rs -> rs.getInteger(0));
         Future<ResultSet> pageResult = Future.future();

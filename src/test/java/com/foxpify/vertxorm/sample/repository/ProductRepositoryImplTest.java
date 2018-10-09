@@ -43,7 +43,7 @@ public class ProductRepositoryImplTest {
 //        Thread.sleep(5000);
         PageRequest pageRequest = new PageRequest(1, 20);
         Query<Product> query = QueryFactory.equal("name", "car");
-        Page<Product> products = Futures.sync(productRepository::getPage, pageRequest, query);
+        Page<Product> products = Futures.sync(productRepository::findAll, query, pageRequest);
         System.out.println(products.getTotalCount());
     }
 }

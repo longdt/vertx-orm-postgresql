@@ -48,29 +48,29 @@ public interface CrudRepository<ID, E> {
         return Futures.toFuture(this::findAll);
     }
 
-    void query(Query<E> query, Handler<AsyncResult<List<E>>> resultHandler);
+    void findAll(Query<E> query, Handler<AsyncResult<List<E>>> resultHandler);
 
-    default Future<List<E>> query(Query<E> query) {
-        return Futures.toFuture(this::query, query);
+    default Future<List<E>> findAll(Query<E> query) {
+        return Futures.toFuture(this::findAll, query);
     }
 
-    void querySingle(Query<E> query, Handler<AsyncResult<Optional<E>>> resultHandler);
+    void find(Query<E> query, Handler<AsyncResult<Optional<E>>> resultHandler);
 
-    default Future<Optional<E>> querySingle(Query<E> query) {
-        return Futures.toFuture(this::querySingle, query);
+    default Future<Optional<E>> find(Query<E> query) {
+        return Futures.toFuture(this::find, query);
     }
 
-    default void getPage(PageRequest pageRequest, Handler<AsyncResult<Page<E>>> resultHandler) {
-        getPage(pageRequest, new RawQuery<>(null), resultHandler);
+    default void findAll(PageRequest pageRequest, Handler<AsyncResult<Page<E>>> resultHandler) {
+        findAll(new RawQuery<>(null), pageRequest, resultHandler);
     }
 
-    default Future<Page<E>> getPage(PageRequest pageRequest) {
-        return Futures.toFuture(this::getPage, pageRequest);
+    default Future<Page<E>> findAll(PageRequest pageRequest) {
+        return Futures.toFuture(this::findAll, pageRequest);
     }
 
-    void getPage(PageRequest pageRequest, Query<E> query, Handler<AsyncResult<Page<E>>> resultHandler);
+    void findAll(Query<E> query, PageRequest pageRequest, Handler<AsyncResult<Page<E>>> resultHandler);
 
-    default Future<Page<E>> getPage(PageRequest pageRequest, Query<E> query) {
-        return Futures.toFuture(this::getPage, pageRequest, query);
+    default Future<Page<E>> findAll(Query<E> query, PageRequest pageRequest) {
+        return Futures.toFuture(this::findAll, query, pageRequest);
     }
 }
