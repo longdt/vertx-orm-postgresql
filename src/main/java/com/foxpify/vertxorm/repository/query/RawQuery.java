@@ -5,11 +5,11 @@ import io.vertx.core.json.JsonArray;
 import java.util.Collections;
 
 public class RawQuery<E> extends AbstractQuery<E> {
-    private String querySql;
-    private JsonArray params;
+    protected String querySql;
+    protected JsonArray params;
 
     public RawQuery(String querySql) {
-        this(querySql, new JsonArray(Collections.emptyList()));
+        this(querySql, QueryFactory.EMPTY_PARAMS);
     }
 
     public RawQuery(String querySql, JsonArray params) {

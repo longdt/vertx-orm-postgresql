@@ -1,10 +1,7 @@
 package com.foxpify.vertxorm.repository.query;
 
-import io.vertx.core.json.JsonArray;
-
-import java.util.Collections;
-
-public class Order<E> extends SingleQuery<E> {
+public class Order<E> {
+    private String fieldName;
     private final boolean descending;
 
     public Order(String fieldName) {
@@ -12,19 +9,12 @@ public class Order<E> extends SingleQuery<E> {
     }
 
     public Order(String fieldName, boolean descending) {
-        super(fieldName);
+        this.fieldName = fieldName;
         this.descending = descending;
-        orders = Collections.singletonList(this);
     }
 
-    @Override
-    public String getConditionSql() {
-        return null;
-    }
-
-    @Override
-    public JsonArray getConditionParams() {
-        return null;
+    public String getFieldName() {
+        return fieldName;
     }
 
     /**
