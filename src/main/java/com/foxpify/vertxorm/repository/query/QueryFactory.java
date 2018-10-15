@@ -311,6 +311,18 @@ public class QueryFactory {
     }
 
     /**
+     * Creates a {@link ILike} query which asserts that an attribute contains with a certain string fragment.
+     *
+     * @param fieldName The attribute to which the query refers
+     * @param value The value to be asserted by the query
+     * @param <O> The type of the object containing the attribute
+     * @return An {@link ILike} query
+     */
+    public static <O> ILike<O> ilike(String fieldName, String value) {
+        return new ILike<>(fieldName, value);
+    }
+
+    /**
      * Creates a {@link Query} query which asserts that an attribute is contained in a certain string
      * fragment.
      *

@@ -7,4 +7,8 @@ public class Not<E> extends RawQuery<E> {
         super("NOT (" + negatedQuery.getConditionSql() + ")", negatedQuery.getConditionParams());
         this.negatedQuery = negatedQuery;
     }
+
+    public Query<E> getNegatedQuery() {
+        return negatedQuery;
+    }
 }
