@@ -129,7 +129,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
         sqlClient.querySingleWithParams(query, new JsonArray().add(conf.id2DbValue(id)), toEntity(resultHandler));
     }
 
-    private Handler<AsyncResult<ResultSet>> toList(Handler<AsyncResult<List<E>>> resultHandler) {
+    protected Handler<AsyncResult<ResultSet>> toList(Handler<AsyncResult<List<E>>> resultHandler) {
         return res -> {
             if (res.succeeded()) {
                 try {
@@ -145,7 +145,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
         };
     }
 
-    private Handler<AsyncResult<JsonArray>> toEntity(Handler<AsyncResult<Optional<E>>> resultHandler) {
+    protected Handler<AsyncResult<JsonArray>> toEntity(Handler<AsyncResult<Optional<E>>> resultHandler) {
         return res -> {
             if (res.succeeded()) {
                 try {
@@ -201,7 +201,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
         });
     }
 
-    private String where(String sql, Query<E> query) {
+    protected String where(String sql, Query<E> query) {
         String condition = query.getConditionSql();
         if (condition != null) {
             sql = sql + " WHERE " + query.getConditionSql();
@@ -209,7 +209,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
         return sql;
     }
 
-    private String toSQL(String sql, Query<E> query) {
+    protected String toSQL(String sql, Query<E> query) {
         StringBuilder queryStr = new StringBuilder(sql);
         String condition = query.getConditionSql();
         if (condition != null) {
@@ -232,7 +232,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
     }
 
 
-    private JsonArray getSqlParams(Query<E> query) {
+    protected JsonArray getSqlParams(Query<E> query) {
         if (query.limit() < 0 && query.offset() < 0) {
             return query.getConditionParams();
         }
