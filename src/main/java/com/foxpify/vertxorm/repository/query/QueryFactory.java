@@ -335,6 +335,21 @@ public class QueryFactory {
         return raw("?  LIKE '%' || \"" + fieldName + "\" || '%'", value);
     }
 
+    /**
+     * Creates a {@link Between} query which asserts that an attribute is between a lower and an upper bound,
+     * inclusive.
+     *
+     * @param fieldName The attribute to which the query refers
+     * @param lowerValue The lower bound to be asserted by the query
+     * @param upperValue The upper bound to be asserted by the query
+     * @param <A> The type of the attribute
+     * @param <O> The type of the object containing the attribute
+     * @return A {@link GreaterThan} query
+     */
+    public static <O, A extends Comparable<A>> Between<O, A> between(String fieldName, A lowerValue, A upperValue) {
+        return new Between<>(fieldName, lowerValue, upperValue);
+    }
+
     public static JsonArray emptyParams() {
         return EMPTY_PARAMS;
     }
