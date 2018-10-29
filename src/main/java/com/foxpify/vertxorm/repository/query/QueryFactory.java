@@ -195,6 +195,10 @@ public class QueryFactory {
         return new RawQuery<>(querySql, new JsonArray(Arrays.asList(params)));
     }
 
+    public static <O> RawQuery<O> raw(String querySql) {
+        return new RawQuery<>(querySql);
+    }
+
     public static <O> Order<O> ascending(String fieldName) {
         return new Order<>(fieldName);
     }
