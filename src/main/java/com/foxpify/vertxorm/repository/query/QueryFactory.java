@@ -12,6 +12,10 @@ public class QueryFactory {
         return new Equal<>(fieldName, value);
     }
 
+    public static <E> NotEqual<E> notEqual(String fieldName, Object value) {
+        return new NotEqual<>(fieldName, value);
+    }
+
     /**
      * Creates a {@link LessThanEqual} query which asserts that an attribute is less than or equal to an upper bound
      * (i.e. less than, inclusive).
