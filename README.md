@@ -10,7 +10,7 @@ Out of the box, the test suite runs a Docker container using TestContainers.
 <dependency>
     <groupId>com.github.longdt</groupId>
     <artifactId>vertx-orm-postgresql</artifactId>
-    <version>1.0</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 ### Example
