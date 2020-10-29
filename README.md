@@ -1,143 +1,141 @@
-# vertx-orm
+## Vertx-Orm-Mysql
+Simple API focusing on scalability and low overhead.
 
-Usage:
-
-**Step 1: define pojo class**
+Reactive and non blocking which able to handle many database connections with a single thread by use `Vertx-mysql-client`
+## Developers
+### Testing
+Out of the box, the test suite runs a Docker container using TestContainers.
+### Maven dependency
 ```
-package longdt.vertxorm.sample.repository;
+<dependency>
+    <groupId>com.github.longdt</groupId>
+    <artifactId>vertx-orm-mysql</artifactId>
+    <version>1.0</version>
+</dependency>
+```
+### Example
+##### Define Entity class:
 
-import java.time.OffsetDateTime;
-
-public class Product {
-    private Long id;
+```
+public class RuleTemplate {
+    private Integer id;
     private String name;
-    private String description;
-    private OffsetDateTime createdDate;
-    private OffsetDateTime updatedDate;
+    private Map<String, ArgumentDescription> arguments;
+    private String flinkJob;
+    private boolean active;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    ...
+    setter/getter methods
+    ...
+}
+```
+##### Define Repository:
+```
+public interface RuleTemplateRepository extends CrudRepository<Integer, RuleTemplate> {
+}
+```
+##### Implement Repository and declare field mapping
+```
+public class RuleTemplateRepositoryImpl extends AbstractCrudRepository<Integer, RuleTemplate> implements RuleTemplateRepository {
+    public RuleTemplateRepositoryImpl(Pool pool) {
+        var mapperBuilder = RowMapper.<Integer, RuleTemplate>builder("rule_template", RuleTemplate::new)
+                .pk("id", RuleTemplate::getId, RuleTemplate::setId, true)
+                .addField("name", RuleTemplate::getName, RuleTemplate::setName)
+                .addJsonField("arguments", RuleTemplate::getArguments, RuleTemplate::setArguments, new TypeReference<>() {
+                })
+                .addField("flink_job", RuleTemplate::getFlinkJob, RuleTemplate::setFlinkJob)
+                .addBooleanField("active", RuleTemplate::getActive, RuleTemplate::setActive)
+                .addField("created_at", RuleTemplate::getCreatedAt, RuleTemplate::setCreatedAt)
+                .addField("updated_at", RuleTemplate::getUpdatedAt, RuleTemplate::setUpdatedAt);
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public OffsetDateTime getCreatedDate() {
-        return createdDate;
-    }
-
-    public void setCreatedDate(OffsetDateTime createdDate) {
-        this.createdDate = createdDate;
-    }
-
-    public OffsetDateTime getUpdatedDate() {
-        return updatedDate;
-    }
-
-    public void setUpdatedDate(OffsetDateTime updatedDate) {
-        this.updatedDate = updatedDate;
+        init(pool, (RowMapperImpl<Integer, RuleTemplate>) mapperBuilder.build());
     }
 }
 ```
-
-**Step 2: Define ProductRepository**
+##### Create repository instance:
 ```
-package longdt.vertxorm.sample.repository;
-
-import longdt.vertxorm.repository.CrudRepository;
-
-public interface ProductRepository extends CrudRepository<Long, Product> {
-
-}
+RuleTemplateRepository repository = new RuleTemplateRepositoryImpl(pool);
 ```
-
-**Step 3: Implement ProductRepository**
+##### Now it's time to use. Let's try some simple methods:
+###### insert
 ```
-package longdt.vertxorm.sample.repository;
-
-import io.vertx.ext.sql.SQLClient;
-import longdt.vertxorm.repository.impl.AbstractCrudRepository;
-import longdt.vertxorm.repository.impl.Config;
-
-public class ProductRepositoryImpl extends AbstractCrudRepository<Long, Product> implements ProductRepository {
-    public ProductRepositoryImpl(SQLClient sqlClient) {
-        Config<Long, Product> conf = new Config.Builder<Long, Product>("bar", Product::new)
-                .pk("id", Product::getId, Product::setId, true)
-                .addField("name", Product::getName, Product::setName)
-                .addField("description", Product::getDescription, Product::setDescription)
-                .addTimestampTzField("created_date", Product::getCreatedDate, Product::setCreatedDate)
-                .addTimestampTzField("updated_date", Product::getUpdatedDate, Product::setUpdatedDate)
-                .build();
-        init(sqlClient, conf);
+var template = new RuleTemplate();
+...
+repository.insert(template, ar -> {
+    if (ar.succeeded()) {
+        System.out.println(ar.result());
+    } else {
+        ar.cause().printStackTrace();
     }
-}
+});
 ```
-**Step 4: Use ProductRepository in other class**
+###### update
 ```
-package longdt.vertxorm.sample.repository;
+var template = new RuleTemplate().setId(1);
+...
+repository.update(template, ar -> {
+    if (ar.succeeded()) {
+        System.out.println(ar.result());
+    } else {
+        ar.cause().printStackTrace();
+    }
+});
+```
+###### find by id
+```
+repository.find(id, ar -> {
+    if (ar.succeeded()) {
+        System.out.println(ar.result());
+    } else {
+        ar.cause().printStackTrace();
+    }
+});
+```
+###### find by query
+```
+import static com.github.longdt.vertxorm.repository.query.QueryFactory.*;
 
-import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.asyncsql.AsyncSQLClient;
-import io.vertx.ext.asyncsql.PostgreSQLClient;
-import longdt.vertxorm.repository.query.Query;
-import longdt.vertxorm.util.Futures;
-import longdt.vertxorm.util.Page;
-import longdt.vertxorm.util.PageRequest;
-import org.junit.Test;
+var query = QueryFactory.<RuleTemplate>and("active", 1);
+repository.findAll(query, ar -> {
+    if (ar.succeeded()) {
+        System.out.println(ar.result());
+    } else {
+        ar.cause().printStackTrace();
+    }
+});
+```
+###### find with paging
+```
+import static com.github.longdt.vertxorm.repository.query.QueryFactory.*;
 
-import java.time.OffsetDateTime;
-
-import static longdt.vertxorm.repository.query.QueryFactory.*;
-
-public class ProductRepositoryImplTest {
-    @Test
-    public void createAndGet() throws InterruptedException {
-        Vertx vertx = Vertx.vertx();
-        JsonObject dbConf = new JsonObject()
-                .put("host", "10.26.53.155")
-                .put("port", 5432)
-                .put("database", "sample")
-                .put("username", "kyc_uat")
-                .put("password", "ILoveKYC");
-
-        AsyncSQLClient sqlClient = PostgreSQLClient.createShared(vertx, dbConf);
-        ProductRepository productRepository = new ProductRepositoryImpl(sqlClient);
-        Product product = new Product();
-        product.setName("car");
-        product.setDescription("this is the best car");
-        OffsetDateTime now = OffsetDateTime.now();
-        product.setCreatedDate(now);
-        product.setUpdatedDate(now);
-        productRepository.save(product, ar -> {
+var pageRequest = new PageRequest(1, 20);
+var query = QueryFactory.<RuleTemplate>and("active", 1);
+repository.findAll(query, pageRequest, ar -> {
+    if (ar.succeeded()) {
+        System.out.println(ar.result());
+    } else {
+        ar.cause().printStackTrace();
+    }
+});
+```
+###### transaction with SQLHelper
+```
+//find then update example
+var id = 1;
+SQLHelper.inTransactionSingle(repository.getPool()
+        , conn -> repository.find(conn, id)     //find entity by id
+                .map(entityOpt -> entityOpt.orElseThrow(() -> new EntityNotFoundException("id: " + id + " is not found")))
+                .compose(entity -> {
+                    //update entity
+                    entity.setUpdatedAt(LocalDateTime.now());
+                    return repository.update(entity);
+                })
+        , ar -> {   //handle result of transaction
             if (ar.succeeded()) {
-                System.out.println(product.getId());
+                System.out.println(ar.result());
             } else {
                 ar.cause().printStackTrace();
             }
         });
-//        Thread.sleep(5000);
-        PageRequest pageRequest = new PageRequest(1, 20);
-        Query<Product> query = equal("name", "car");
-        Page<Product> products = Futures.sync(productRepository::getPage, pageRequest, query);
-        System.out.println(products.getTotalCount());
-    }
-}
 ```

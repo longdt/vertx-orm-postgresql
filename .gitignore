@@ -1,4 +1,6 @@
-# Created by .ignore support plugin (hsz.mobi)
-/.gradle/
-/vertx-orm.iml
 /.idea/
+**.iml
+**/target/
+**/generated/
+**/asciidoc/
+**/log/
