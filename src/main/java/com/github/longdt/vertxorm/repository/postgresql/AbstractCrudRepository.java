@@ -261,11 +261,12 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
             queryStr.deleteCharAt(queryStr.length() - 1);
         }
 
+        int paramIdx = query.getConditionParams().size();
         if (query.limit() >= 0) {
-            queryStr.append(" LIMIT ?");
+            queryStr.append(" LIMIT $").append(++paramIdx);
         }
         if (query.offset() >= 0) {
-            queryStr.append(" OFFSET ?");
+            queryStr.append(" OFFSET $").append(++paramIdx);
         }
         return queryStr.toString();
     }
