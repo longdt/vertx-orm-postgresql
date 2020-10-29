@@ -1,7 +1,7 @@
-## Vertx-Orm-Mysql
+## Vertx-Orm-PostgresSQL
 Simple API focusing on scalability and low overhead.
 
-Reactive and non blocking which able to handle many database connections with a single thread by use `Vertx-mysql-client`
+Reactive and non blocking which able to handle many database connections with a single thread by use `vertx-pg-client`
 ## Developers
 ### Testing
 Out of the box, the test suite runs a Docker container using TestContainers.
@@ -9,7 +9,7 @@ Out of the box, the test suite runs a Docker container using TestContainers.
 ```
 <dependency>
     <groupId>com.github.longdt</groupId>
-    <artifactId>vertx-orm-mysql</artifactId>
+    <artifactId>vertx-orm-postgresql</artifactId>
     <version>1.0</version>
 </dependency>
 ```
