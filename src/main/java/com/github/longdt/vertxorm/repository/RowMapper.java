@@ -38,8 +38,6 @@ public interface RowMapper<ID, E> {
 
         Builder<ID, E> addDecimalField(String fieldName, Function<E, BigDecimal> getter, BiConsumer<E, BigDecimal> setter);
 
-        Builder<ID, E> addBooleanField(String fieldName, Function<E, Boolean> getter, BiConsumer<E, Boolean> setter);
-
         Builder<ID, E> addJsonObjectField(String fieldName, Function<E, JsonObject> getter, BiConsumer<E, JsonObject> setter);
 
         RowMapper<ID, E> build();

@@ -128,18 +128,6 @@ public class BuilderImpl<ID, E> implements RowMapper.Builder<ID, E> {
     }
 
     @Override
-    public RowMapper.Builder<ID, E> addBooleanField(String fieldName, Function<E, Boolean> getter, BiConsumer<E, Boolean> setter) {
-        mappings.put(fieldName, new FieldMapping<>(fieldName, entity -> {
-            var v = getter.apply(entity);
-            return v != null && v ? (byte) 1 : 0;
-        },
-                (entity, value) -> {
-                    if (value != null) setter.accept(entity, value > 0);
-                }));
-        return this;
-    }
-
-    @Override
     public RowMapper.Builder<ID, E> addJsonObjectField(String fieldName, Function<E, JsonObject> getter, BiConsumer<E, JsonObject> setter) {
         mappings.put(fieldName, new FieldMapping<>(fieldName, entity -> {
             var v = getter.apply(entity);
