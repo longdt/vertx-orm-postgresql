@@ -4,23 +4,23 @@ import io.vertx.sqlclient.Tuple;
 
 import java.util.List;
 
-public abstract class SingleQuery<E> extends RawQuery<E> {
+public abstract class SingleQuery<E> extends AbstractQuery<E> {
     protected String fieldName;
 
-    public SingleQuery(String fieldName, String querySql, Object value) {
-        this(fieldName, querySql, Tuple.of(value));
+    public SingleQuery(String fieldName, Object value) {
+        this(fieldName, Tuple.of(value));
     }
 
-    public SingleQuery(String fieldName, String querySql, Object... value) {
-        this(fieldName, querySql, Tuple.wrap(value));
+    public SingleQuery(String fieldName, Object... value) {
+        this(fieldName, Tuple.wrap(value));
     }
 
-    public SingleQuery(String fieldName, String querySql, List<?> value) {
-        this(fieldName, querySql, Tuple.wrap(value));
+    public SingleQuery(String fieldName, List<Object> value) {
+        this(fieldName, Tuple.wrap(value));
     }
 
-    public SingleQuery(String fieldName, String querySql, Tuple params) {
-        super(querySql,params);
+    public SingleQuery(String fieldName, Tuple params) {
+        super(params);
         this.fieldName = fieldName;
     }
 

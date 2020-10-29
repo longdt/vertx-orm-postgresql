@@ -1,11 +1,32 @@
 package com.github.longdt.vertxorm.repository.query;
 
+import io.vertx.sqlclient.Tuple;
+
 import java.util.List;
 
 public abstract class AbstractQuery<E> implements Query<E> {
     protected List<Order<E>> orders;
     protected int limit = -1;
     protected long offset = -1;
+    protected Tuple params;
+
+    public AbstractQuery(Tuple params) {
+        this.params = params;
+    }
+
+    @Override
+    public String getConditionSql() {
+        var builder = new StringBuilder();
+        buildSQL(builder, 1);
+        return builder.toString();
+    }
+
+    public abstract void buildSQL(StringBuilder sqlBuilder, int startIdx);
+
+    @Override
+    public Tuple getConditionParams() {
+        return params;
+    }
 
     @Override
     public Query<E> orderBy(List<Order<E>> orders) {

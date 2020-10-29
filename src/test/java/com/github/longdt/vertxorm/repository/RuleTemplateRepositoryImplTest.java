@@ -2,6 +2,7 @@ package com.github.longdt.vertxorm.repository;
 
 import com.github.longdt.vertxorm.model.ArgumentDescription;
 import com.github.longdt.vertxorm.model.RuleTemplate;
+import com.github.longdt.vertxorm.repository.query.QueryFactory;
 import com.github.longdt.vertxorm.util.DatabaseTestCase;
 import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxTestContext;
@@ -87,7 +88,7 @@ class RuleTemplateRepositoryImplTest extends DatabaseTestCase {
     @Test
     void findPage(Vertx vertx, VertxTestContext testContext) {
         awaitCompletion(this::insert, vertx);
-        repository.findAll(new PageRequest(1, 20), testContext.succeeding(rs -> testContext.verify(() -> {
+        repository.findAll(QueryFactory.equal("id", 1), new PageRequest(1, 20), testContext.succeeding(rs -> testContext.verify(() -> {
             assertEquals(rs.getTotalElements(), 1);
             var entity = rs.getContent().get(0);
             assertNotNull(entity);
