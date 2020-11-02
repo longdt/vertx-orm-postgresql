@@ -129,7 +129,7 @@ SQLHelper.inTransactionSingle(repository.getPool()
                 .compose(entity -> {
                     //update entity
                     entity.setUpdatedAt(LocalDateTime.now());
-                    return repository.update(entity);
+                    return repository.update(conn, entity);
                 })
         , ar -> {   //handle result of transaction
             if (ar.succeeded()) {
