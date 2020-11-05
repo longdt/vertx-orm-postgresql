@@ -7,6 +7,7 @@ import io.vertx.core.Promise;
 import io.vertx.sqlclient.*;
 
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collector;
@@ -72,6 +73,13 @@ public class SQLHelper {
         executeInConnection(pool, conn -> {
             var txn = conn.begin();
             return action.apply(conn).compose(res -> Futures.toFuture((Consumer<Handler<AsyncResult<Void>>>) txn::commit).map(res));
+        }, resultHandler);
+    }
+
+    public static <T> void inTransactionSingle(Pool pool, BiFunction<SqlConnection, Transaction, Future<T>> action, Handler<AsyncResult<T>> resultHandler) {
+        executeInConnection(pool, conn -> {
+            var txn = conn.begin();
+            return action.apply(conn, txn);
         }, resultHandler);
     }
 
