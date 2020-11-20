@@ -4,6 +4,7 @@ import java.util.List;
 
 public class In<E, V> extends SingleQuery<E> {
 
+    @SuppressWarnings("unchecked")
     public In(String fieldName, List<V> values) {
         super(fieldName, (List<Object>) values);
     }
