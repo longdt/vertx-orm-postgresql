@@ -41,7 +41,7 @@ public class SQLHelper {
         });
     }
 
-    public static <T, R> void executeInConnection(Pool pool, BiConsumer<SqlConnection, Handler<AsyncResult<R>>> consumer, Handler<AsyncResult<R>> resultHandler) {
+    public static <R> void executeInConnection(Pool pool, BiConsumer<SqlConnection, Handler<AsyncResult<R>>> consumer, Handler<AsyncResult<R>> resultHandler) {
         pool.getConnection(getConn -> {
             if (getConn.failed()) {
                 resultHandler.handle(Future.failedFuture(getConn.cause()));
@@ -55,7 +55,7 @@ public class SQLHelper {
         });
     }
 
-    public static <T> void executeInConnection(Pool pool, Function<SqlConnection, Future<T>> action, Handler<AsyncResult<T>> resultHandler) {
+    public static <R> void executeInConnection(Pool pool, Function<SqlConnection, Future<R>> action, Handler<AsyncResult<R>> resultHandler) {
         pool.getConnection(getConn -> {
             if (getConn.failed()) {
                 resultHandler.handle(Future.failedFuture(getConn.cause()));
