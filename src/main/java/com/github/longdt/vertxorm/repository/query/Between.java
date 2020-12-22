@@ -7,12 +7,13 @@ public class Between<O, A extends Comparable<A>> extends SingleQuery<O> {
     }
 
     @Override
-    public void buildSQL(StringBuilder sqlBuilder, int startIdx) {
+    public int appendQuerySql(StringBuilder sqlBuilder, int index) {
         sqlBuilder.append('\"')
                 .append(fieldName)
                 .append("\" BETWEEN $")
-                .append(startIdx++)
+                .append(++index)
                 .append(" AND $")
-                .append(startIdx);
+                .append(++index);
+        return index;
     }
 }

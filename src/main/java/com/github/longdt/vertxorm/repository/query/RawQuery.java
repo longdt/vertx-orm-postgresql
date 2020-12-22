@@ -12,27 +12,27 @@ public class RawQuery<E> extends AbstractQuery<E> {
         this(querySql, QueryFactory.EMPTY_PARAMS);
     }
 
+    public RawQuery(String querySql, Object... params) {
+        this(querySql, Tuple.wrap(params));
+    }
+
     public RawQuery(String querySql, Tuple params) {
         super(params);
         this.querySql = querySql;
     }
 
     @Override
-    public Tuple getConditionParams() {
-        return params;
-    }
-
-    @Override
-    public void buildSQL(StringBuilder sqlBuilder, int startIdx) {
+    public int appendQuerySql(StringBuilder sqlBuilder, int index) {
         if (params.size() == 0) {
             sqlBuilder.append(querySql);
-            return;
+            return index;
         }
         var matcher = pattern.matcher(querySql);
         while (matcher.find()) {
             matcher.appendReplacement(sqlBuilder, "\\$");
-            sqlBuilder.append(startIdx++);
+            sqlBuilder.append(++index);
         }
         matcher.appendTail(sqlBuilder);
+        return index;
     }
 }

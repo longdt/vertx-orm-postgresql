@@ -3,13 +3,12 @@ package com.github.longdt.vertxorm.repository.postgresql;
 import com.github.longdt.vertxorm.repository.*;
 import com.github.longdt.vertxorm.repository.base.RowMapperImpl;
 import com.github.longdt.vertxorm.repository.query.Query;
-import com.github.longdt.vertxorm.util.Tuples;
+import com.github.longdt.vertxorm.repository.query.QueryFactory;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.sqlclient.*;
-import io.vertx.sqlclient.impl.ArrayTuple;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
@@ -231,7 +230,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
     @Override
     public void count(SqlConnection conn, Query<E> query, Handler<AsyncResult<Long>> resultHandler) {
         conn.preparedQuery(where(countSql, query))
-                .execute(query.getConditionParams(), res -> {
+                .execute(query.getQueryParams(), res -> {
                     if (res.failed()) {
                         resultHandler.handle(Future.failedFuture(res.cause()));
                     } else {
@@ -241,44 +240,46 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
     }
 
     protected String where(String sql, Query<E> query) {
-        String condition = query.getConditionSql();
-        if (condition != null) {
-            sql = sql + " WHERE " + query.getConditionSql();
+        if (query != QueryFactory.EMPTY_QUERY) {
+            StringBuilder sqlBuilder = new StringBuilder(sql)
+                    .append(" WHERE ");
+            query.appendQuerySql(sqlBuilder, 0);
+            return sqlBuilder.toString();
         }
         return sql;
     }
 
     protected String toSQL(String sql, Query<E> query) {
-        StringBuilder queryStr = new StringBuilder(sql);
-        String condition = query.getConditionSql();
-        if (condition != null) {
-            queryStr.append(" WHERE ").append(condition);
+        StringBuilder sqlBuilder = new StringBuilder(sql);
+        var index = 0;
+        if (query != QueryFactory.EMPTY_QUERY) {
+            sqlBuilder.append(" WHERE ");
+            index = query.appendQuerySql(sqlBuilder, index);
         }
         if (query.orderBy() != null && !query.orderBy().isEmpty()) {
-            queryStr.append(" ORDER BY ");
-            query.orderBy().forEach(o -> queryStr.append("\"").append(o.getFieldName()).append("\" ")
+            sqlBuilder.append(" ORDER BY ");
+            query.orderBy().forEach(o -> sqlBuilder.append("\"").append(o.getFieldName()).append("\" ")
                     .append(o.isDescending() ? "DESC," : "ASC,"));
-            queryStr.deleteCharAt(queryStr.length() - 1);
+            sqlBuilder.deleteCharAt(sqlBuilder.length() - 1);
         }
 
-        int paramIdx = query.getConditionParams().size();
         if (query.limit() >= 0) {
-            queryStr.append(" LIMIT $").append(++paramIdx);
+            sqlBuilder.append(" LIMIT $").append(++index);
         }
         if (query.offset() >= 0) {
-            queryStr.append(" OFFSET $").append(++paramIdx);
+            sqlBuilder.append(" OFFSET $").append(++index);
         }
-        return queryStr.toString();
+        return sqlBuilder.toString();
     }
 
 
     protected Tuple getSqlParams(Query<E> query) {
         if (query.limit() < 0 && query.offset() < 0) {
-            return query.getConditionParams();
+            return query.getQueryParams();
         }
 
-        var params = query.getConditionParams();
-        params = Tuples.addAll(new ArrayTuple(params.size() + 2), params);
+        var params = Tuple.tuple();
+        params = query.appendQueryParams(params);
         if (query.limit() >= 0) {
             params.addInteger(query.limit());
         }

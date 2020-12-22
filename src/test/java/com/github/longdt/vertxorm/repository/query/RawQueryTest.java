@@ -7,9 +7,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class RawQueryTest {
     @Test
     void buildSQL() {
-        var query = new RawQuery<Object>("abc = ? and age > ?");
+        var query = new RawQuery<Object>("abc = ? and age > ?", 1, 2);
         StringBuilder builder = new StringBuilder();
-        query.buildSQL(builder, 100);
-        System.out.println(builder);
+        var index = query.appendQuerySql(builder, 100);
+        assertEquals(index, 102);
     }
 }

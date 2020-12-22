@@ -1,5 +1,6 @@
 package com.github.longdt.vertxorm.repository.query;
 
+import com.github.longdt.vertxorm.util.Tuples;
 import io.vertx.sqlclient.Tuple;
 
 import java.util.List;
@@ -15,16 +16,12 @@ public abstract class AbstractQuery<E> implements Query<E> {
     }
 
     @Override
-    public String getConditionSql() {
-        var builder = new StringBuilder();
-        buildSQL(builder, 1);
-        return builder.toString();
+    public Tuple appendQueryParams(Tuple tuple) {
+        return Tuples.addAll(tuple, params);
     }
 
-    public abstract void buildSQL(StringBuilder sqlBuilder, int startIdx);
-
     @Override
-    public Tuple getConditionParams() {
+    public Tuple getQueryParams() {
         return params;
     }
 

@@ -7,9 +7,10 @@ public class IsNull<E> extends SingleQuery<E> {
     }
 
     @Override
-    public void buildSQL(StringBuilder sqlBuilder, int startIdx) {
+    public int appendQuerySql(StringBuilder sqlBuilder, int index) {
         sqlBuilder.append('\"')
                 .append(fieldName)
                 .append("\" is null");
+        return index;
     }
 }

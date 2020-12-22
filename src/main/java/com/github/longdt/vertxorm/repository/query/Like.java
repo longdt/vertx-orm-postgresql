@@ -7,10 +7,11 @@ public class Like<E> extends SingleQuery<E> {
     }
 
     @Override
-    public void buildSQL(StringBuilder sqlBuilder, int startIdx) {
+    public int appendQuerySql(StringBuilder sqlBuilder, int index) {
         sqlBuilder.append('\"')
                 .append(fieldName)
                 .append("\" LIKE $")
-                .append(startIdx);
+                .append(++index);
+        return index;
     }
 }

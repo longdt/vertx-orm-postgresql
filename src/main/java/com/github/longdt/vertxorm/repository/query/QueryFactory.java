@@ -7,6 +7,7 @@ import java.util.*;
 
 public class QueryFactory {
     public static final Tuple EMPTY_PARAMS = ArrayTuple.EMPTY;
+    public static final Query<Object> EMPTY_QUERY = new RawQuery<>(null);
 
     public static <E> Equal<E> equal(String fieldName, Object value) {
         return new Equal<>(fieldName, value);
@@ -360,5 +361,10 @@ public class QueryFactory {
 
     public static Tuple emptyParams() {
         return EMPTY_PARAMS;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <E> Query<E> emptyQuery() {
+        return (Query<E>) EMPTY_QUERY;
     }
 }

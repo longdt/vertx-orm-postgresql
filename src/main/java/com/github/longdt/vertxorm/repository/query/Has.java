@@ -7,9 +7,10 @@ public class Has<E> extends SingleQuery<E> {
     }
 
     @Override
-    public void buildSQL(StringBuilder sqlBuilder, int startIdx) {
+    public int appendQuerySql(StringBuilder sqlBuilder, int index) {
         sqlBuilder.append('\"')
                 .append(fieldName)
                 .append("\" is not null");
+        return index;
     }
 }

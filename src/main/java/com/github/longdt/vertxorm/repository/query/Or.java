@@ -1,6 +1,5 @@
 package com.github.longdt.vertxorm.repository.query;
 
-import com.github.longdt.vertxorm.util.Tuples;
 import io.vertx.sqlclient.Tuple;
 
 import java.util.Collection;
@@ -15,7 +14,6 @@ public class Or<E> extends AbstractQuery<E> {
                     + childQueries.size() + " were supplied");
         }
         this.childQueries = childQueries;
-        params = childQueries.stream().map(Query::getConditionParams).collect(Tuple::tuple, Tuples::addAll, Tuples::addAll);
     }
 
     public Collection<Query<E>> getChildQueries() {
@@ -23,18 +21,30 @@ public class Or<E> extends AbstractQuery<E> {
     }
 
     @Override
-    public void buildSQL(StringBuilder sqlBuilder, int startIdx) {
+    public int appendQuerySql(StringBuilder sqlBuilder, int index) {
         sqlBuilder.append('(');
         var iter = childQueries.iterator();
-        var query = (AbstractQuery<E>) iter.next();
-        query.buildSQL(sqlBuilder, startIdx);
-        startIdx += query.getConditionParams().size();
+        var query = iter.next();
+        index = query.appendQuerySql(sqlBuilder, index);
         while (iter.hasNext()) {
             sqlBuilder.append(") OR (");
-            query = (AbstractQuery<E>) iter.next();
-            query.buildSQL(sqlBuilder, startIdx);
-            startIdx += query.getConditionParams().size();
+            index = iter.next().appendQuerySql(sqlBuilder, index);
         }
         sqlBuilder.append(')');
+        return index;
+    }
+
+    @Override
+    public Tuple getQueryParams() {
+        if (params == null) {
+            params = appendQueryParams(Tuple.tuple());
+        }
+        return params;
+    }
+
+    @Override
+    public Tuple appendQueryParams(Tuple tuple) {
+        childQueries.forEach(q -> q.appendQueryParams(tuple));
+        return tuple;
     }
 }
