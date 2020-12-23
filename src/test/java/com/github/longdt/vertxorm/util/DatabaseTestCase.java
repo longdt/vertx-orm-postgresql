@@ -72,16 +72,17 @@ public abstract class DatabaseTestCase {
 
     @AfterEach
     protected void tearDown(Vertx vertx, VertxTestContext testContext) {
-        SQLHelper.inTransactionSingle(pool
-                , conn -> SQLHelper.query(conn, "SELECT concat('DROP TABLE IF EXISTS \"', table_name, '\";')\n" +
-                        "FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE'", Collectors.mapping(r -> r.getString(0), Collectors.toList()))
+        pool.withTransaction(conn -> conn.query("SELECT concat('DROP TABLE IF EXISTS \"', table_name, '\";')\n" +
+                        "FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE'")
+                        .collecting(Collectors.mapping(r -> r.getString(0), Collectors.toList()))
+                        .execute()
                         .compose(sqlResult -> {
                             StringBuilder sql = new StringBuilder("SET session_replication_role = 'replica';");
                             sqlResult.value().forEach(sql::append);
                             sql.append("SET session_replication_role = 'origin';");
-                            return SQLHelper.query(conn, sql.toString());
+                            return conn.query(sql.toString()).execute();
                         })
-                , testContext.completing());
+                , testContext.succeedingThenComplete());
     }
 
     protected void awaitCompletion(BiConsumer<Vertx, VertxTestContext> consumer, Vertx vertx) {
@@ -113,7 +114,7 @@ public abstract class DatabaseTestCase {
     public Future<RowSet<Row>> prepareDB(Path script) {
         try {
             var content = Files.readString(script, StandardCharsets.UTF_8);
-            return SQLHelper.query(pool, content);
+            return pool.query(content).execute();
         } catch (IOException e) {
             return Future.failedFuture(e);
         }

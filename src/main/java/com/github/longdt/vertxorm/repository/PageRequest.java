@@ -1,10 +1,7 @@
 package com.github.longdt.vertxorm.repository;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.json.jackson.DatabindCodec;
 
 /**
  * index start 1
@@ -20,15 +17,12 @@ public class PageRequest {
     }
 
     public PageRequest(JsonObject jsonObject) {
-        try {
-            DatabindCodec.mapper().updateValue(this, jsonObject);
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
-        }
+        this.index = jsonObject.getInteger("index");
+        this.size = jsonObject.getInteger("size");
     }
 
     public JsonObject toJson() {
-        return JsonObject.mapFrom(this);
+        return new JsonObject().put("index", index).put("size", size);
     }
 
     public int getIndex() {
@@ -47,8 +41,7 @@ public class PageRequest {
         this.size = size;
     }
 
-    @JsonIgnore
     public long getOffset() {
-        return (index - 1) * size;
+        return (index - 1) * (long) size;
     }
 }
