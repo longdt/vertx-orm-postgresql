@@ -35,4 +35,9 @@ public class RawQuery<E> extends AbstractQuery<E> {
         matcher.appendTail(sqlBuilder);
         return index;
     }
+
+    @Override
+    public boolean isConditional() {
+        return querySql != null;
+    }
 }

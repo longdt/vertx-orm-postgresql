@@ -40,4 +40,9 @@ public class Not<E> extends AbstractQuery<E> {
     public Tuple appendQueryParams(Tuple tuple) {
         return negatedQuery.appendQueryParams(tuple);
     }
+
+    @Override
+    public boolean isConditional() {
+        return negatedQuery.isConditional();
+    }
 }

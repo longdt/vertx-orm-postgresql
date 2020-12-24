@@ -96,7 +96,7 @@ public class SqlSupportImpl implements SqlSupport {
     public <E> String getSql(String sql, Query<E> query) {
         StringBuilder sqlBuilder = new StringBuilder(sql);
         var index = 0;
-        if (query != QueryFactory.EMPTY_QUERY) {
+        if (query.isConditional()) {
             sqlBuilder.append(" WHERE ");
             index = query.appendQuerySql(sqlBuilder, index);
         }

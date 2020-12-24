@@ -17,7 +17,7 @@ public interface SqlSupport {
     String getQueryByIdSql();
 
     default <E> String getQuerySql(String sql, Query<E> query) {
-        if (query != QueryFactory.EMPTY_QUERY) {
+        if (query.isConditional()) {
             StringBuilder sqlBuilder = new StringBuilder(sql)
                     .append(" WHERE ");
             query.appendQuerySql(sqlBuilder, 0);

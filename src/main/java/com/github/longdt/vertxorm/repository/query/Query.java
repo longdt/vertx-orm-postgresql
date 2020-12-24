@@ -14,6 +14,10 @@ public interface Query<E> {
 
     Tuple getQueryParams();
 
+    default boolean isConditional() {
+        return true;
+    }
+
     @SuppressWarnings({"unchecked"})
     default Query<E> orderBy(Order<E>... orders) {
         return orderBy(Arrays.asList(orders));

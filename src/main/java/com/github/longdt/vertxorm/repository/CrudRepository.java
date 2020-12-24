@@ -1,7 +1,7 @@
 package com.github.longdt.vertxorm.repository;
 
 import com.github.longdt.vertxorm.repository.query.Query;
-import com.github.longdt.vertxorm.repository.query.RawQuery;
+import com.github.longdt.vertxorm.repository.query.QueryFactory;
 import io.vertx.core.Future;
 import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.SqlConnection;
@@ -60,7 +60,7 @@ public interface CrudRepository<ID, E> {
     Future<Optional<E>> find(SqlConnection conn, Query<E> query);
 
     default Future<Page<E>> findAll(PageRequest pageRequest) {
-        return findAll(new RawQuery<>(null), pageRequest);
+        return findAll(QueryFactory.emptyQuery(), pageRequest);
     }
 
     default Future<Page<E>> findAll(Query<E> query, PageRequest pageRequest) {
@@ -68,7 +68,7 @@ public interface CrudRepository<ID, E> {
     }
 
     default Future<Page<E>> findAll(SqlConnection conn, PageRequest pageRequest) {
-        return findAll(conn, new RawQuery<>(null), pageRequest);
+        return findAll(conn, QueryFactory.emptyQuery(), pageRequest);
     }
 
     Future<Page<E>> findAll(SqlConnection conn, Query<E> query, PageRequest pageRequest);
