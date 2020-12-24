@@ -34,10 +34,7 @@ public class SqlSupportImpl implements SqlSupport {
                 + " VALUES "
                 + IntStream.rangeClosed(1, columnNames.size() - 1).mapToObj(idx -> "$" + idx).collect(Collectors.joining(",", "(", ")"))
                 + " RETURNING \"" + getIdName() + "\"";
-        upsertSql = "INSERT INTO \"" + tableName + "\" "
-                + columnNames.stream().map(c -> "\"" + c + "\"").collect(Collectors.joining(",", "(", ")"))
-                + " VALUES "
-                + IntStream.rangeClosed(1, columnNames.size()).mapToObj(idx -> "$" + idx).collect(Collectors.joining(",", "(", ")"))
+        upsertSql = insertSql
                 + " ON CONFLICT (\"" + getIdName() + "\") DO UPDATE SET "
                 + columnNames.stream().skip(1).map(c -> "\"" + c + "\" = EXCLUDED.\"" + c + "\"").collect(Collectors.joining(", "));
         updateSql = "UPDATE \"" + tableName + "\""
@@ -45,11 +42,10 @@ public class SqlSupportImpl implements SqlSupport {
                 + " WHERE \"" + getIdName() + "\" = $1";
         querySql = "SELECT " + columnNames.stream().map(c -> "\"" + c + "\"").collect(Collectors.joining(","))
                 + " FROM \"" + tableName + "\"";
-        queryByIdSql = "SELECT " + columnNames.stream().map(c -> "\"" + c + "\"").collect(Collectors.joining(","))
-                + " FROM \"" + tableName + "\" WHERE \"" + getIdName() + "\" = $1";
+        queryByIdSql = querySql + " WHERE \"" + getIdName() + "\" = $1";
         countSql = "SELECT count(*) FROM \"" + tableName + "\"";
         existSql = "SELECT 1 FROM \"" + tableName + "\"";
-        existByIdSql = "SELECT 1 FROM \"" + tableName + "\" WHERE \"" + getIdName() + "\" = $1 LIMIT 1";
+        existByIdSql = existSql + " WHERE \"" + getIdName() + "\" = $1 LIMIT 1";
         deleteSql = "DELETE FROM \"" + tableName + "\" WHERE \"" + getIdName() + "\" = $1";
     }
 
