@@ -2,7 +2,6 @@ package com.github.longdt.vertxorm.repository.postgresql;
 
 import com.github.longdt.vertxorm.repository.SqlSupport;
 import com.github.longdt.vertxorm.repository.query.Query;
-import com.github.longdt.vertxorm.repository.query.QueryFactory;
 
 import java.util.List;
 import java.util.Objects;
