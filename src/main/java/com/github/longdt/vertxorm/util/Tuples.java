@@ -25,7 +25,7 @@ public class Tuples {
         return new ArrayTuple(capacity);
     }
 
-    public static Tuple wrap(Object[] data, int offset) {
-        return new WrappedArrayTuple(data, offset);
+    public static Tuple shift(Object[] data, int offset) {
+        return new ShiftedArrayTuple(data, offset);
     }
 }

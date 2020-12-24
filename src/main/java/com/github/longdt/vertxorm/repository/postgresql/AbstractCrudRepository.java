@@ -49,7 +49,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
         Tuple paramsTuple;
         if (genPk) {
             sql = sqlSupport.getAutoIdInsertSql();
-            paramsTuple = Tuples.wrap(params, 1);
+            paramsTuple = Tuples.shift(params, 1);
         } else {
             sql = sqlSupport.getInsertSql();
             paramsTuple = Tuple.wrap(params);

@@ -3,12 +3,12 @@ package com.github.longdt.vertxorm.util;
 import io.vertx.sqlclient.Tuple;
 import io.vertx.sqlclient.impl.TupleInternal;
 
-public class WrappedArrayTuple implements TupleInternal {
+public class ShiftedArrayTuple implements TupleInternal {
     private Object[] values;
     private int offset;
     private int size;
 
-    public WrappedArrayTuple(Object[] values, int offset) {
+    public ShiftedArrayTuple(Object[] values, int offset) {
         this.values = values;
         this.offset = offset;
         size = values.length - offset;
