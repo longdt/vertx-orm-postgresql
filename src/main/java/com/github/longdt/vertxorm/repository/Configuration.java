@@ -6,21 +6,11 @@ import java.util.List;
 import java.util.function.Function;
 
 public class Configuration<ID, E> {
-    private SqlDialect dialect;
     private String tableName;
     private List<String> columnNames;
     private IdAccessor<ID, E> idAccessor;
     protected Function<Row, E> rowMapper;
     protected Function<E, Object[]> parametersMapper;
-
-    public SqlDialect getDialect() {
-        return dialect;
-    }
-
-    public Configuration<ID, E> setDialect(SqlDialect dialect) {
-        this.dialect = dialect;
-        return this;
-    }
 
     public String getTableName() {
         return tableName;

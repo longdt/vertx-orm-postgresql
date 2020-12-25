@@ -12,7 +12,6 @@ import java.util.List;
 public class RuleTemplateRepositoryImpl extends AbstractCrudRepository<Integer, RuleTemplate> implements RuleTemplateRepository {
     public RuleTemplateRepositoryImpl(Pool pool) {
         var conf = new Configuration<Integer, RuleTemplate>()
-                .setDialect(SqlDialect.POSTGRES)
                 .setTableName("rule_template")
                 .setColumnNames(List.of("id", "name", "arguments", "flink_job", "active", "created_at", "updated_at"))
                 .setIdAccessor(new IdAccessor<>() {
