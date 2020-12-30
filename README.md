@@ -127,7 +127,7 @@ repository.findAll(query, pageRequest)
         }
     });
 ```
-###### transaction with SQLHelper
+###### transaction
 ```
 //find then update example
 var id = 1;
