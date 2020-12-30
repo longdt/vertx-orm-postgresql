@@ -13,6 +13,12 @@ import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+/**
+ * <p>Abstract AbstractCrudRepository class.</p>
+ *
+ * @author Long Dinh
+ * @version $Id: $Id
+ */
 public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID, E> {
     protected Pool pool;
     private IdAccessor<ID, E> idAccessor;
@@ -22,6 +28,12 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
     protected SqlSupport sqlSupport;
 
 
+    /**
+     * <p>init.</p>
+     *
+     * @param pool a {@link io.vertx.sqlclient.Pool} object.
+     * @param configuration a {@link com.github.longdt.vertxorm.repository.Configuration} object.
+     */
     public void init(Pool pool, Configuration<ID, E> configuration) {
         this.pool = pool;
         this.rowMapper = Objects.requireNonNull(configuration.getRowMapper());
@@ -31,6 +43,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
         this.sqlSupport = new SqlSupportImpl(configuration.getTableName(), configuration.getColumnNames());
     }
 
+    /** {@inheritDoc} */
     @Override
     public Future<E> save(SqlConnection conn, E entity) {
         if (idAccessor.getId(entity) == null) {
@@ -39,6 +52,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
         return upsert(conn, entity);
     }
 
+    /** {@inheritDoc} */
     @Override
     public Future<E> insert(SqlConnection conn, E entity) {
         boolean genPk = idAccessor.getId(entity) == null;
@@ -66,6 +80,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 });
     }
 
+    /** {@inheritDoc} */
     @Override
     public Future<E> update(SqlConnection conn, E entity) {
         var params = parametersMapper.apply(entity);
@@ -81,6 +96,13 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 .map(entity);
     }
 
+    /**
+     * <p>delete.</p>
+     *
+     * @param conn a {@link io.vertx.sqlclient.SqlConnection} object.
+     * @param id a ID object.
+     * @return a {@link io.vertx.core.Future} object.
+     */
     public Future<Void> delete(SqlConnection conn, ID id) {
         return conn.preparedQuery(sqlSupport.getDeleteSql())
                 .execute(Tuple.of(idAccessor.id2DbValue(id)))
@@ -92,6 +114,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 });
     }
 
+    /** {@inheritDoc} */
     @Override
     public Future<Optional<E>> find(SqlConnection conn, ID id) {
         return conn.preparedQuery(sqlSupport.getQueryByIdSql())
@@ -100,16 +123,29 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 .map(this::toEntity);
     }
 
+    /**
+     * <p>toList.</p>
+     *
+     * @param sqlResult a {@link io.vertx.sqlclient.SqlResult} object.
+     * @return a {@link java.util.List} object.
+     */
     protected List<E> toList(SqlResult<List<E>> sqlResult) {
         return sqlResult.value();
     }
 
+    /**
+     * <p>toEntity.</p>
+     *
+     * @param rowSet a {@link io.vertx.sqlclient.RowSet} object.
+     * @return a {@link java.util.Optional} object.
+     */
     protected Optional<E> toEntity(RowSet<E> rowSet) {
         var rowIter = rowSet.iterator();
         E entity = rowIter.hasNext() ? rowIter.next() : null;
         return Optional.ofNullable(entity);
     }
 
+    /** {@inheritDoc} */
     @Override
     public Future<List<E>> findAll(SqlConnection conn) {
         return conn.query(sqlSupport.getQuerySql())
@@ -118,6 +154,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 .map(this::toList);
     }
 
+    /** {@inheritDoc} */
     @Override
     public Future<List<E>> findAll(SqlConnection conn, Query<E> query) {
         String sql = sqlSupport.getSql(sqlSupport.getQuerySql(), query);
@@ -128,6 +165,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 .map(this::toList);
     }
 
+    /** {@inheritDoc} */
     @Override
     public Future<Optional<E>> find(SqlConnection conn, Query<E> query) {
         String sql = sqlSupport.getSql(sqlSupport.getQuerySql(), query);
@@ -138,6 +176,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 .map(this::toEntity);
     }
 
+    /** {@inheritDoc} */
     @Override
     public Future<Page<E>> findAll(SqlConnection conn, Query<E> query, PageRequest pageRequest) {
         query.limit(pageRequest.getSize()).offset(pageRequest.getOffset());
@@ -155,6 +194,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 });
     }
 
+    /** {@inheritDoc} */
     @Override
     public Future<Long> count(SqlConnection conn, Query<E> query) {
         return conn.preparedQuery(sqlSupport.getQuerySql(sqlSupport.getCountSql(), query))
@@ -162,6 +202,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 .map(res -> res.iterator().next().getLong(0));
     }
 
+    /** {@inheritDoc} */
     @Override
     public Future<Boolean> exists(SqlConnection conn, ID id) {
         return conn.preparedQuery(sqlSupport.getExistByIdSql())
@@ -169,6 +210,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 .map(res -> res.size() > 0);
     }
 
+    /** {@inheritDoc} */
     @Override
     public Future<Boolean> exists(SqlConnection conn, Query<E> query) {
         query.limit(1).offset(-1);
@@ -179,6 +221,12 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 .map(res -> res.size() > 0);
     }
 
+    /**
+     * <p>getSqlParams.</p>
+     *
+     * @param query a {@link com.github.longdt.vertxorm.repository.query.Query} object.
+     * @return a {@link io.vertx.sqlclient.Tuple} object.
+     */
     protected Tuple getSqlParams(Query<E> query) {
         if (query.limit() < 0 && query.offset() < 0) {
             return query.getQueryParams();
@@ -195,6 +243,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
         return params;
     }
 
+    /** {@inheritDoc} */
     @Override
     public Pool getPool() {
         return pool;

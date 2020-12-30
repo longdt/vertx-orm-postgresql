@@ -1,5 +1,11 @@
 package com.github.longdt.vertxorm.util;
 
+/**
+ * <p>QuadConsumer interface.</p>
+ *
+ * @author Long Dinh
+ * @version $Id: $Id
+ */
 public interface QuadConsumer<T, U, V, K> {
 
     /**

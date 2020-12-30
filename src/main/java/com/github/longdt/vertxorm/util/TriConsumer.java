@@ -1,5 +1,11 @@
 package com.github.longdt.vertxorm.util;
 
+/**
+ * <p>TriConsumer interface.</p>
+ *
+ * @author Long Dinh
+ * @version $Id: $Id
+ */
 public interface TriConsumer<T, U, V> {
 
     /**

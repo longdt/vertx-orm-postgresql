@@ -4,9 +4,20 @@ import io.vertx.sqlclient.Tuple;
 
 import java.util.Collection;
 
+/**
+ * <p>Or class.</p>
+ *
+ * @author Long Dinh
+ * @version $Id: $Id
+ */
 public class Or<E> extends AbstractQuery<E> {
     private final Collection<Query<E>> childQueries;
 
+    /**
+     * <p>Constructor for Or.</p>
+     *
+     * @param childQueries a {@link java.util.Collection} object.
+     */
     public Or(Collection<Query<E>> childQueries) {
         super(null);
         if (childQueries.size() < 2) {
@@ -16,10 +27,16 @@ public class Or<E> extends AbstractQuery<E> {
         this.childQueries = childQueries;
     }
 
+    /**
+     * <p>Getter for the field <code>childQueries</code>.</p>
+     *
+     * @return a {@link java.util.Collection} object.
+     */
     public Collection<Query<E>> getChildQueries() {
         return childQueries;
     }
 
+    /** {@inheritDoc} */
     @Override
     public int appendQuerySql(StringBuilder sqlBuilder, int index) {
         sqlBuilder.append('(');
@@ -34,6 +51,7 @@ public class Or<E> extends AbstractQuery<E> {
         return index;
     }
 
+    /** {@inheritDoc} */
     @Override
     public Tuple getQueryParams() {
         if (params == null) {
@@ -42,6 +60,7 @@ public class Or<E> extends AbstractQuery<E> {
         return params;
     }
 
+    /** {@inheritDoc} */
     @Override
     public Tuple appendQueryParams(Tuple tuple) {
         childQueries.forEach(q -> q.appendQueryParams(tuple));

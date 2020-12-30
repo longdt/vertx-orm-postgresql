@@ -8,6 +8,12 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * <p>SqlSupportImpl class.</p>
+ *
+ * @author Long Dinh
+ * @version $Id: $Id
+ */
 public class SqlSupportImpl implements SqlSupport {
     private final String tableName;
     private final List<String> columnNames;
@@ -22,6 +28,12 @@ public class SqlSupportImpl implements SqlSupport {
     private final String existByIdSql;
     private final String deleteSql;
 
+    /**
+     * <p>Constructor for SqlSupportImpl.</p>
+     *
+     * @param tableName a {@link java.lang.String} object.
+     * @param columnNames a {@link java.util.List} object.
+     */
     public SqlSupportImpl(String tableName, List<String> columnNames) {
         this.tableName = Objects.requireNonNull(tableName);
         this.columnNames = Objects.requireNonNull(columnNames);
@@ -49,6 +61,11 @@ public class SqlSupportImpl implements SqlSupport {
         deleteSql = "DELETE FROM \"" + tableName + "\" WHERE \"" + getIdName() + "\" = $1";
     }
 
+    /**
+     * <p>Getter for the field <code>tableName</code>.</p>
+     *
+     * @return a {@link java.lang.String} object.
+     */
     public String getTableName() {
         return tableName;
     }
@@ -57,36 +74,43 @@ public class SqlSupportImpl implements SqlSupport {
         return columnNames.get(0);
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getInsertSql() {
         return insertSql;
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getAutoIdInsertSql() {
         return autoIdInsertSql;
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getUpsertSql() {
         return upsertSql;
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getUpdateSql() {
         return updateSql;
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getQuerySql() {
         return querySql;
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getQueryByIdSql() {
         return queryByIdSql;
     }
 
+    /** {@inheritDoc} */
     @Override
     public <E> String getSql(String sql, Query<E> query) {
         StringBuilder sqlBuilder = new StringBuilder(sql);
@@ -111,21 +135,25 @@ public class SqlSupportImpl implements SqlSupport {
         return sqlBuilder.toString();
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getCountSql() {
         return countSql;
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getExistSql() {
         return existSql;
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getExistByIdSql() {
         return existByIdSql;
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getDeleteSql() {
         return deleteSql;
