@@ -187,7 +187,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 .execute(params)
                 .compose(sqlResult -> {
                     var content = sqlResult.value();
-                    if (content.size() < pageRequest.getSize()) {
+                    if (!content.isEmpty() && content.size() < pageRequest.getSize()) {
                         return Future.succeededFuture(new Page<>(pageRequest, pageRequest.getOffset() + content.size(), content));
                     }
                     return count(conn, query).map(cnt -> new Page<>(pageRequest, cnt, content));
