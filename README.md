@@ -1,4 +1,4 @@
-## Vertx-Orm-PostgresSQL
+## Vertx-Orm-Postgresql
 Simple API focusing on scalability and low overhead.
 
 Reactive and non blocking which able to handle many database connections with a single thread by use `vertx-pg-client`.
