@@ -11,8 +11,8 @@ import io.vertx.core.json.JsonObject;
  */
 @DataObject
 public class PageRequest {
-    private int index;
-    private int size;
+    private final int index;
+    private final int size;
 
     /**
      * <p>Constructor for PageRequest.</p>
@@ -54,30 +54,12 @@ public class PageRequest {
     }
 
     /**
-     * <p>Setter for the field <code>index</code>.</p>
-     *
-     * @param index a int.
-     */
-    public void setIndex(int index) {
-        this.index = index;
-    }
-
-    /**
      * <p>Getter for the field <code>size</code>.</p>
      *
      * @return a int.
      */
     public int getSize() {
         return size;
-    }
-
-    /**
-     * <p>Setter for the field <code>size</code>.</p>
-     *
-     * @param size a int.
-     */
-    public void setSize(int size) {
-        this.size = size;
     }
 
     /**
