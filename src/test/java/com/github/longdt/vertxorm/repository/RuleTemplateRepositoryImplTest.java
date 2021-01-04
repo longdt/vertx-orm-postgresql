@@ -94,7 +94,7 @@ class RuleTemplateRepositoryImplTest extends DatabaseTestCase {
                 .setArguments(Collections.emptyMap())
                 .setUpdatedAt(now)
                 .setId(1);
-        repository.update(template, QueryFactory.equal("active", 1))
+        repository.update(template, QueryFactory.equal("active", true))
                 .onComplete(testContext.succeeding(entity -> testContext.verify(() -> {
                     assertNotNull(entity);
                     assertEquals(entity.getId(), 1);
@@ -116,7 +116,7 @@ class RuleTemplateRepositoryImplTest extends DatabaseTestCase {
                 .setArguments(Collections.emptyMap())
                 .setUpdatedAt(now)
                 .setId(1);
-        repository.update(template, QueryFactory.equal("active", 0))
+        repository.update(template, QueryFactory.equal("active", false))
                 .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
                     assertEquals(throwable.getClass(), EntityNotFoundException.class);
                     testContext.completeNow();
@@ -161,7 +161,7 @@ class RuleTemplateRepositoryImplTest extends DatabaseTestCase {
         var template = new RuleTemplate()
                 .setName("A Random Name")
                 .setId(1);
-        repository.updateDynamic(template, QueryFactory.equal("active", 1))
+        repository.updateDynamic(template, QueryFactory.equal("active", true))
                 .compose(r -> repository.find(1))
                 .map(Optional::orElseThrow)
                 .onComplete(testContext.succeeding(entity -> testContext.verify(() -> {
@@ -180,7 +180,7 @@ class RuleTemplateRepositoryImplTest extends DatabaseTestCase {
         var template = new RuleTemplate()
                 .setName("A Random Name")
                 .setId(1);
-        repository.updateDynamic(template, QueryFactory.equal("active", 0))
+        repository.updateDynamic(template, QueryFactory.equal("active", false))
                 .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
                     assertEquals(throwable.getClass(), EntityNotFoundException.class);
                     testContext.completeNow();
