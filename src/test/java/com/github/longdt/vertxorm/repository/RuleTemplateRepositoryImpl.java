@@ -27,8 +27,8 @@ public class RuleTemplateRepositoryImpl extends AbstractCrudRepository<Integer, 
                 })
                 .setRowMapper(row -> new RuleTemplate().setId(row.getInteger(0))
                         .setName(row.getString(1))
-                        .setArguments(((DatabindCodec) Json.CODEC).fromString(row.getString(2), new TypeReference<>() {
-                        }))
+                        .setArguments(row.getString(2) != null ? ((DatabindCodec) Json.CODEC).fromString(row.getString(2), new TypeReference<>() {
+                        }) : null)
                         .setFlinkJob(row.getString(3))
                         .setActive(row.getBoolean(4))
                         .setCreatedAt(row.getLocalDateTime(5))
@@ -37,7 +37,7 @@ public class RuleTemplateRepositoryImpl extends AbstractCrudRepository<Integer, 
                     Object[] data = new Object[7];
                     data[0] = ruleTemplate.getId();
                     data[1] = ruleTemplate.getName();
-                    data[2] = Json.encode(ruleTemplate.getArguments());
+                    data[2] = ruleTemplate.getArguments() != null ? Json.encode(ruleTemplate.getArguments()) : null;
                     data[3] = ruleTemplate.getFlinkJob();
                     data[4] = ruleTemplate.getActive();
                     data[5] = ruleTemplate.getCreatedAt();

@@ -74,6 +74,11 @@ public class SqlSupportImpl implements SqlSupport {
         return columnNames.get(0);
     }
 
+    @Override
+    public List<String> getColumnNames() {
+        return columnNames;
+    }
+
     /** {@inheritDoc} */
     @Override
     public String getInsertSql() {
@@ -96,6 +101,35 @@ public class SqlSupportImpl implements SqlSupport {
     @Override
     public String getUpdateSql() {
         return updateSql;
+    }
+
+    @Override
+    public <E> int getUpdateSql(StringBuilder sqlBuilder, Query<E> query) {
+        sqlBuilder.append(updateSql).append(" AND ");
+        return query.appendQuerySql(sqlBuilder, columnNames.size());
+    }
+
+    @Override
+    public int getUpdateDynamicSql(StringBuilder sqlBuilder, Object[] params) {
+        sqlBuilder.append("UPDATE \"").append(tableName).append("\" SET ");
+        int placeIdx = 1;
+        for (int i = 1; i < params.length; ++i) {
+            if (params[i] != null) {
+                sqlBuilder.append('"').append(columnNames.get(i)).append("\"=$").append(++placeIdx).append(',');
+            }
+        }
+        if (placeIdx > 1) {
+            sqlBuilder.setLength(sqlBuilder.length() - 1);
+        }
+        sqlBuilder.append(" WHERE \"").append(getIdName()).append("\" = $1");
+        return placeIdx;
+    }
+
+    @Override
+    public <E> int getUpdateDynamicSql(StringBuilder sqlBuilder, Object[] params, Query<E> query) {
+        int index = getUpdateDynamicSql(sqlBuilder, params);
+        sqlBuilder.append(" AND ");
+        return query.appendQuerySql(sqlBuilder, index);
     }
 
     /** {@inheritDoc} */
