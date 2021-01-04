@@ -2,6 +2,7 @@ package com.github.longdt.vertxorm.repository;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.shareddata.Shareable;
 
 /**
  * index start 1
@@ -10,7 +11,7 @@ import io.vertx.core.json.JsonObject;
  * @version $Id: $Id
  */
 @DataObject
-public class PageRequest {
+public class PageRequest implements Shareable {
     private final int index;
     private final int size;
 

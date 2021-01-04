@@ -25,6 +25,32 @@ public class Tuples {
     }
 
     /**
+     * <p>addAll.</p>
+     *
+     * @param tuple a {@link io.vertx.sqlclient.Tuple} object.
+     * @param values an array of {@link java.lang.Object} objects.
+     * @param offset a int.
+     * @return a {@link io.vertx.sqlclient.Tuple} object.
+     */
+    public static Tuple addAll(Tuple tuple, Object[] values, int offset) {
+        for (int i = offset; i < values.length; ++i) {
+            tuple.addValue(values[i]);
+        }
+        return tuple;
+    }
+
+    /**
+     * <p>addAll.</p>
+     *
+     * @param tuple a {@link io.vertx.sqlclient.Tuple} object.
+     * @param values an array of {@link java.lang.Object} objects.
+     * @return a {@link io.vertx.sqlclient.Tuple} object.
+     */
+    public static Tuple addAll(Tuple tuple, Object[] values) {
+        return addAll(tuple, values, 0);
+    }
+
+    /**
      * <p>tuple.</p>
      *
      * @param src a {@link io.vertx.sqlclient.Tuple} object.
@@ -53,5 +79,9 @@ public class Tuples {
      */
     public static Tuple shift(Object[] data, int offset) {
         return new ShiftedArrayTuple(data, offset);
+    }
+
+    public static Tuple sub(Object[] data, int offset, int length) {
+        return new SubArrayTuple(data, offset, length);
     }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
+import io.vertx.core.shareddata.Shareable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,7 @@ import java.util.function.Function;
  * @version $Id: $Id
  */
 @DataObject
-public class Page<E> {
+public class Page<E> implements Shareable {
     private int currentPage;
     private int pageSize;
     private long totalPage;
