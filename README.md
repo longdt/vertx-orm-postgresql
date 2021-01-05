@@ -2,6 +2,10 @@
 Simple API focusing on scalability and low overhead.
 
 Reactive and non blocking which able to handle many database connections with a single thread by use `vertx-pg-client`.
+### Release version 2.1.0
+* Add `CrudRepository` methods update/updateDynamic with `Query` param
+* Fix bug incorrect totalElements when find page
+* Fix bug update non-existed entity
 ### Release version 2.0.0
 * Upgrade Vertx to 4.0.0
 * Removal of the Callback-API
