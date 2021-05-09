@@ -27,6 +27,7 @@ public class SqlSupportImpl implements SqlSupport {
     private final String existSql;
     private final String existByIdSql;
     private final String deleteSql;
+    private final String deleteByIdSql;
 
     /**
      * <p>Constructor for SqlSupportImpl.</p>
@@ -58,7 +59,8 @@ public class SqlSupportImpl implements SqlSupport {
         countSql = "SELECT count(*) FROM \"" + tableName + "\"";
         existSql = "SELECT 1 FROM \"" + tableName + "\"";
         existByIdSql = existSql + " WHERE \"" + getIdName() + "\" = $1 LIMIT 1";
-        deleteSql = "DELETE FROM \"" + tableName + "\" WHERE \"" + getIdName() + "\" = $1";
+        deleteSql = "DELETE FROM \"" + tableName + "\"";
+        deleteByIdSql = deleteSql + " WHERE \"" + getIdName() + "\" = $1";
     }
 
     /**
@@ -66,11 +68,11 @@ public class SqlSupportImpl implements SqlSupport {
      *
      * @return a {@link java.lang.String} object.
      */
-    public String getTableName() {
+    String getTableName() {
         return tableName;
     }
 
-    private String getIdName() {
+    String getIdName() {
         return columnNames.get(0);
     }
 
@@ -191,5 +193,11 @@ public class SqlSupportImpl implements SqlSupport {
     @Override
     public String getDeleteSql() {
         return deleteSql;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String getDeleteByIdSql() {
+        return deleteByIdSql;
     }
 }

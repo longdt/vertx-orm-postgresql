@@ -117,4 +117,11 @@ public interface SqlSupport {
      * @return a {@link java.lang.String} object.
      */
     String getDeleteSql();
+
+    /**
+     * <p>getDeleteByIdSql.</p>
+     *
+     * @return a {@link java.lang.String} object.
+     */
+    String getDeleteByIdSql();
 }

@@ -9,10 +9,7 @@ import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -41,6 +38,66 @@ class RuleTemplateRepositoryImplTest extends DatabaseTestCase {
                     assertTrue(entity.getActive());
                     testContext.completeNow();
                 })));
+    }
+
+    @Test
+    void insertAll(Vertx vertx, VertxTestContext testContext) {
+        var arguements = new HashMap<String, ArgumentDescription>();
+        arguements.put("max_txn_cnt", new ArgumentDescription().setName("max_txn_cnt").setType(ArgumentDescription.ValueType.INTEGER));
+        arguements.put("max_txn_amount", new ArgumentDescription().setName("max_txn_amount").setType(ArgumentDescription.ValueType.INTEGER));
+        var now = LocalDateTime.now();
+        var template = new RuleTemplate()
+                .setActive(true)
+                .setName(DEFAULT_RULE_TEMPLATE_NAME)
+                .setFlinkJob("Flink Job")
+                .setArguments(arguements)
+                .setCreatedAt(now)
+                .setUpdatedAt(now);
+        var template2 = new RuleTemplate()
+                .setActive(true)
+                .setName(DEFAULT_RULE_TEMPLATE_NAME)
+                .setFlinkJob("Flink Job 2")
+                .setArguments(arguements)
+                .setCreatedAt(now)
+                .setUpdatedAt(now);
+        repository.insertAll(List.of(template, template2))
+                .onComplete(testContext.succeeding(entities -> testContext.verify(() -> {
+                    var entity1 = ((List<RuleTemplate>) entities).get(0);
+                    assertNotNull(entity1);
+                    assertEquals(entity1.getId(), 1);
+                    assertEquals(entity1.getFlinkJob(), template.getFlinkJob());
+                    assertTrue(entity1.getActive());
+                    var entity2 = ((List<RuleTemplate>) entities).get(1);
+                    assertNotNull(entity2);
+                    assertEquals(entity2.getId(), 2);
+                    assertEquals(entity2.getFlinkJob(), template2.getFlinkJob());
+                    assertTrue(entity2.getActive());
+                    testContext.completeNow();
+                })));
+    }
+
+    @Test
+    void insertAll_Duplicated(Vertx vertx, VertxTestContext testContext) {
+        var arguements = new HashMap<String, ArgumentDescription>();
+        arguements.put("max_txn_cnt", new ArgumentDescription().setName("max_txn_cnt").setType(ArgumentDescription.ValueType.INTEGER));
+        arguements.put("max_txn_amount", new ArgumentDescription().setName("max_txn_amount").setType(ArgumentDescription.ValueType.INTEGER));
+        var now = LocalDateTime.now();
+        var template = new RuleTemplate()
+                .setActive(true)
+                .setName(DEFAULT_RULE_TEMPLATE_NAME)
+                .setFlinkJob("Flink Job")
+                .setArguments(arguements)
+                .setCreatedAt(now)
+                .setUpdatedAt(now);
+        var template2 = new RuleTemplate()
+                .setActive(true)
+                .setName(DEFAULT_RULE_TEMPLATE_NAME)
+                .setFlinkJob("Flink Job")
+                .setArguments(arguements)
+                .setCreatedAt(now)
+                .setUpdatedAt(now);
+        repository.insertAll(List.of(template, template2))
+                .onComplete(testContext.failingThenComplete());
     }
 
     @Test
@@ -79,6 +136,36 @@ class RuleTemplateRepositoryImplTest extends DatabaseTestCase {
         repository.update(template)
                 .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
                     assertEquals(throwable.getClass(), EntityNotFoundException.class);
+                    testContext.completeNow();
+                })));
+    }
+
+    @Test
+    void updateAll_Success(Vertx vertx, VertxTestContext testContext) {
+        awaitCompletion(this::insertAll, vertx);
+        var now = LocalDateTime.now();
+        var template = new RuleTemplate()
+                .setActive(false)
+                .setName("Sample Rule Template")
+                .setFlinkJob("Updated Flink Job")
+                .setArguments(Collections.emptyMap())
+                .setUpdatedAt(now)
+                .setId(1);
+        var template2 = new RuleTemplate()
+                .setActive(false)
+                .setName("Sample Rule")
+                .setFlinkJob("Updated Flink Job")
+                .setArguments(Collections.emptyMap())
+                .setUpdatedAt(now)
+                .setCreatedAt(LocalDateTime.now())
+                .setId(1);
+        repository.updateAll(List.of(template, template2))
+                .onComplete(testContext.succeeding(entities -> testContext.verify(() -> {
+                    assertNotNull(entities);
+                    var existed1 = ((List<Boolean>) entities).get(0);
+                    assertTrue(existed1);
+                    var existed2 = ((List<Boolean>) entities).get(1);
+                    assertTrue(existed2);
                     testContext.completeNow();
                 })));
     }
@@ -248,5 +335,19 @@ class RuleTemplateRepositoryImplTest extends DatabaseTestCase {
                     assertEquals(rs.getName(), jobName);
                     testContext.completeNow();
                 })));
+    }
+
+    @Test
+    void deleteAll(Vertx vertx, VertxTestContext testContext) {
+        awaitCompletion(this::insertAll, vertx);
+        repository.deleteAll()
+                .onComplete(testContext.succeedingThenComplete());
+    }
+
+    @Test
+    void deleteAllByIds(Vertx vertx, VertxTestContext testContext) {
+        awaitCompletion(this::insertAll, vertx);
+        repository.deleteAll(List.of(1, 2))
+                .onComplete(testContext.succeedingThenComplete());
     }
 }

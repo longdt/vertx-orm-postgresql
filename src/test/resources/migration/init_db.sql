@@ -2,7 +2,7 @@ create table rule_template
 (
     id         serial4 primary key,
     created_at TIMESTAMP  default CURRENT_TIMESTAMP null,
-    updated_at TIMESTAMP                            NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP  default CURRENT_TIMESTAMP null,
     name       varchar(50)                          not null,
     arguments  varchar(2048)                        not null,
     flink_job  varchar(50)                          not null,

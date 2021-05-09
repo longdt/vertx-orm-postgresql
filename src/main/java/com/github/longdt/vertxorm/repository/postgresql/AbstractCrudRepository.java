@@ -2,14 +2,13 @@ package com.github.longdt.vertxorm.repository.postgresql;
 
 import com.github.longdt.vertxorm.repository.*;
 import com.github.longdt.vertxorm.repository.query.Query;
+import com.github.longdt.vertxorm.repository.query.QueryFactory;
 import com.github.longdt.vertxorm.util.Tuples;
 import io.vertx.core.Future;
 import io.vertx.sqlclient.*;
 import io.vertx.sqlclient.impl.ArrayTuple;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -26,13 +25,13 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
     protected Function<Row, E> rowMapper;
     protected Function<E, Object[]> parametersMapper;
     protected Collector<Row, ?, List<E>> collector;
-    protected SqlSupport sqlSupport;
+    protected SqlSupportImpl sqlSupport;
 
 
     /**
      * <p>init.</p>
      *
-     * @param pool a {@link io.vertx.sqlclient.Pool} object.
+     * @param pool          a {@link io.vertx.sqlclient.Pool} object.
      * @param configuration a {@link com.github.longdt.vertxorm.repository.Configuration} object.
      */
     public void init(Pool pool, Configuration<ID, E> configuration) {
@@ -44,19 +43,39 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
         this.sqlSupport = new SqlSupportImpl(configuration.getTableName(), configuration.getColumnNames());
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Future<E> save(SqlConnection conn, E entity) {
         if (idAccessor.getId(entity) == null) {
-            return insert(conn, entity);
+            return insert(conn, entity, true);
         }
         return upsert(conn, entity);
     }
 
-    /** {@inheritDoc} */
+    @Override
+    public Future<Collection<E>> saveAll(SqlConnection conn, Collection<E> entities) {
+        if (entities.isEmpty()) {
+            return Future.succeededFuture();
+        }
+        var entity = entities.iterator().next();
+        if (idAccessor.getId(entity) == null) {
+            return insertAll(conn, entities, true);
+        }
+        return upsertAll(conn, entities);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Future<E> insert(SqlConnection conn, E entity) {
         boolean genPk = idAccessor.getId(entity) == null;
+        return insert(conn, entity, genPk);
+    }
+
+    private Future<E> insert(SqlConnection conn, E entity, boolean genPk) {
         var params = parametersMapper.apply(entity);
         String sql;
         Tuple paramsTuple;
@@ -81,7 +100,49 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 });
     }
 
-    /** {@inheritDoc} */
+    @Override
+    public Future<Collection<E>> insertAll(SqlConnection conn, Collection<E> entities) {
+        if (entities.isEmpty()) {
+            return Future.succeededFuture();
+        }
+        var entity = entities.iterator().next();
+        var genPk = idAccessor.getId(entity) == null;
+        return insertAll(conn, entities, genPk);
+    }
+
+    private Future<Collection<E>> insertAll(SqlConnection conn, Collection<E> entities, boolean genPk) {
+        String sql;
+        List<Tuple> batch;
+        if (genPk) {
+            sql = sqlSupport.getAutoIdInsertSql();
+            batch = toBatch(entities, params -> Tuples.shift(params, 1));
+        } else {
+            sql = sqlSupport.getInsertSql();
+            batch = toBatch(entities);
+        }
+        return conn.preparedQuery(sql)
+                .executeBatch(batch)
+                .map(res -> {
+                    try {
+                        if (genPk) {
+                            setIdAll(entities, res);
+                        }
+                        return entities;
+                    } catch (Exception e) {
+                        throw new RuntimeException("Can't set id value of entity in batch mode", e);
+                    }
+                });
+    }
+
+    private void setIdAll(Collection<E> entities, RowSet<Row> rows) {
+        for (var iter = entities.iterator(); iter.hasNext() && rows != null; rows = rows.next()) {
+            idAccessor.setId(iter.next(), idAccessor.db2IdValue(rows.iterator().next().getValue(0)));
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Future<E> update(SqlConnection conn, E entity) {
         var params = parametersMapper.apply(entity);
@@ -94,6 +155,21 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                         throw new EntityNotFoundException("Entity with id: " + params[0] + " is not found");
                     }
                 });
+    }
+
+    @Override
+    public Future<Collection<Boolean>> updateAll(SqlConnection conn, Collection<E> entities) {
+        var batch = toBatch(entities);
+        return conn.preparedQuery(sqlSupport.getUpdateSql())
+                .executeBatch(batch)
+                .map(rows -> checkExistedEntities(rows, new ArrayList<>(entities.size())));
+    }
+
+    private Collection<Boolean> checkExistedEntities(RowSet<Row> rows, Collection<Boolean> existedEntities) {
+        do {
+            existedEntities.add(rows.rowCount() == 1);
+        } while ((rows = rows.next()) != null);
+        return existedEntities;
     }
 
     @Override
@@ -154,6 +230,34 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
     }
 
     @Override
+    public Future<Collection<Boolean>> updateDynamicAll(SqlConnection conn, Collection<E> entities) {
+        if (entities.isEmpty()) {
+            return Future.succeededFuture();
+        }
+        var entity = entities.iterator().next();
+        var params = parametersMapper.apply(entity);
+        var sqlBuilder = new StringBuilder();
+        int idx = sqlSupport.getUpdateDynamicSql(sqlBuilder, params);
+        if (idx == 1) {
+            return Future.succeededFuture();
+        }
+
+        var batch = toBatch(entities, entityParams -> {
+            int nonNullIdx = 1;
+            for (int i = 1; i < entityParams.length; ++i) {
+                if (entityParams[i] != null) {
+                    entityParams[nonNullIdx++] = entityParams[i];
+                }
+            }
+            return Tuples.sub(entityParams, 0, nonNullIdx);
+        });
+
+        return conn.preparedQuery(sqlBuilder.toString())
+                .executeBatch(batch)
+                .map(rows -> checkExistedEntities(rows, new ArrayList<>(entities.size())));
+    }
+
+    @Override
     public Future<Void> updateDynamic(SqlConnection conn, E entity, Query<E> query) {
         var params = parametersMapper.apply(entity);
         var id = params[0];
@@ -190,15 +294,22 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 .map(entity);
     }
 
+    private Future<Collection<E>> upsertAll(SqlConnection conn, Collection<E> entities) {
+        var batch = toBatch(entities);
+        return conn.preparedQuery(sqlSupport.getUpsertSql())
+                .executeBatch(batch)
+                .map(entities);
+    }
+
     /**
      * <p>delete.</p>
      *
      * @param conn a {@link io.vertx.sqlclient.SqlConnection} object.
-     * @param id a ID object.
+     * @param id   a ID object.
      * @return a {@link io.vertx.core.Future} object.
      */
     public Future<Void> delete(SqlConnection conn, ID id) {
-        return conn.preparedQuery(sqlSupport.getDeleteSql())
+        return conn.preparedQuery(sqlSupport.getDeleteByIdSql())
                 .execute(Tuple.of(idAccessor.id2DbValue(id)))
                 .map(res -> {
                     if (res.rowCount() != 1) {
@@ -208,7 +319,30 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 });
     }
 
-    /** {@inheritDoc} */
+    @Override
+    public Future<Void> deleteAll(SqlConnection conn, Collection<ID> ids) {
+        List<?> queryParams;
+        if (ids.getClass() == ArrayList.class) {
+            queryParams = (List<?>) ids;
+        } else {
+            queryParams = new ArrayList<>(ids);
+        }
+        var query = QueryFactory.in(sqlSupport.getIdName(), queryParams);
+        return conn.preparedQuery(sqlSupport.getQuerySql(sqlSupport.getDeleteSql(), query))
+                .execute(query.getQueryParams())
+                .mapEmpty();
+    }
+
+    @Override
+    public Future<Void> deleteAll(SqlConnection conn) {
+        return conn.preparedQuery(sqlSupport.getDeleteSql())
+                .execute()
+                .mapEmpty();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Future<Optional<E>> find(SqlConnection conn, ID id) {
         return conn.preparedQuery(sqlSupport.getQueryByIdSql())
@@ -239,7 +373,9 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
         return Optional.ofNullable(entity);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Future<List<E>> findAll(SqlConnection conn) {
         return conn.query(sqlSupport.getQuerySql())
@@ -248,7 +384,9 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 .map(this::toList);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Future<List<E>> findAll(SqlConnection conn, Query<E> query) {
         String sql = sqlSupport.getSql(sqlSupport.getQuerySql(), query);
@@ -259,7 +397,9 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 .map(this::toList);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Future<Optional<E>> find(SqlConnection conn, Query<E> query) {
         String sql = sqlSupport.getSql(sqlSupport.getQuerySql(), query);
@@ -270,7 +410,9 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 .map(this::toEntity);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Future<Page<E>> findAll(SqlConnection conn, Query<E> query, PageRequest pageRequest) {
         query.limit(pageRequest.getSize()).offset(pageRequest.getOffset());
@@ -288,7 +430,9 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 });
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Future<Long> count(SqlConnection conn, Query<E> query) {
         return conn.preparedQuery(sqlSupport.getQuerySql(sqlSupport.getCountSql(), query))
@@ -296,7 +440,9 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 .map(res -> res.iterator().next().getLong(0));
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Future<Boolean> exists(SqlConnection conn, ID id) {
         return conn.preparedQuery(sqlSupport.getExistByIdSql())
@@ -304,7 +450,9 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 .map(res -> res.size() > 0);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Future<Boolean> exists(SqlConnection conn, Query<E> query) {
         query.limit(1).offset(-1);
@@ -337,7 +485,25 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
         return params;
     }
 
-    /** {@inheritDoc} */
+    protected List<Tuple> toBatch(Collection<E> entities, Function<Object[], Tuple> tupleMapper) {
+        var batch = new ArrayList<Tuple>(entities.size());
+        for (E e : entities) {
+            batch.add(tupleMapper.apply(parametersMapper.apply(e)));
+        }
+        return batch;
+    }
+
+    protected List<Tuple> toBatch(Collection<E> entities) {
+        var batch = new ArrayList<Tuple>(entities.size());
+        for (E e : entities) {
+            batch.add(Tuple.wrap(parametersMapper.apply(e)));
+        }
+        return batch;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Pool getPool() {
         return pool;

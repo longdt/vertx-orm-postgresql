@@ -34,13 +34,36 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Testcontainers
 public abstract class DatabaseTestCase {
+    private static final boolean USE_CONTAINER = false;
     private static final int DEFAULT_AWAIT_TIME_SECONDS = 10;
     private static final String SQL_FOLDER = "src/test/resources/migration/";
     private static final String SQL_TEST_FOLDER = "src/test/resources/script/";
-    protected static final Pool pool;
-    protected static final String database;
+    protected static Pool pool;
+    protected static String database;
 
     static {
+        if (USE_CONTAINER) {
+            initFromContainerEnv();
+        } else {
+            initFromExternalEnv();
+        }
+    }
+
+    private static void initFromExternalEnv() {
+        database = "postgres";
+        var connectOptions = new PgConnectOptions()
+                .setHost("localhost")
+                .setPort(15432)
+                .setDatabase(database)
+                .setUser("postgres")
+                .setPassword("password");
+        // Pool options
+        PoolOptions poolOptions = new PoolOptions()
+                .setMaxSize(10);
+        pool = PgPool.pool(connectOptions, poolOptions);
+    }
+
+    private static void initFromContainerEnv() {
         var pgSQLContainer = new PostgreSQLContainer<>(PostgreSQLContainer.IMAGE)
                 .withTmpFs(Collections.singletonMap("/var/lib/mysql", "rw"));
         pgSQLContainer.start();

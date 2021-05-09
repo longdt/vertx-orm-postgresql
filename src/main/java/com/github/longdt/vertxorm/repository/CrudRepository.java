@@ -6,6 +6,7 @@ import io.vertx.core.Future;
 import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.SqlConnection;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,6 +37,12 @@ public interface CrudRepository<ID, E> {
      */
     Future<E> save(SqlConnection conn, E entity);
 
+    default Future<Collection<E>> saveAll(Collection<E> entities) {
+        return getPool().withConnection(conn -> saveAll(conn, entities));
+    }
+
+    Future<Collection<E>> saveAll(SqlConnection conn, Collection<E> entities);
+
     /**
      * <p>insert.</p>
      *
@@ -54,6 +61,12 @@ public interface CrudRepository<ID, E> {
      * @return a {@link io.vertx.core.Future} object.
      */
     Future<E> insert(SqlConnection conn, E entity);
+
+    default Future<Collection<E>> insertAll(Collection<E> entities) {
+        return getPool().withConnection(conn -> insertAll(conn, entities));
+    }
+
+    Future<Collection<E>> insertAll(SqlConnection conn, Collection<E> entities);
 
     /**
      * <p>update.</p>
@@ -74,6 +87,13 @@ public interface CrudRepository<ID, E> {
      */
     Future<E> update(SqlConnection conn, E entity);
 
+    default Future<Collection<Boolean>> updateAll(Collection<E> entities) {
+        return getPool().withConnection(conn -> updateAll(conn, entities));
+    }
+
+    Future<Collection<Boolean>> updateAll(SqlConnection conn, Collection<E> entities);
+
+
     default Future<E> update(E entity, Query<E> query) {
         return getPool().withConnection(conn -> update(conn, entity, query));
     }
@@ -85,6 +105,12 @@ public interface CrudRepository<ID, E> {
     }
 
     Future<Void> updateDynamic(SqlConnection conn, E entity);
+
+    default Future<Collection<Boolean>> updateDynamicAll(Collection<E> entities) {
+        return getPool().withConnection(conn -> updateDynamicAll(conn, entities));
+    }
+
+    Future<Collection<Boolean>> updateDynamicAll(SqlConnection conn, Collection<E> entities);
 
     default Future<Void> updateDynamic(E entity, Query<E> query) {
         return getPool().withConnection(conn -> updateDynamic(conn, entity, query));
@@ -111,6 +137,17 @@ public interface CrudRepository<ID, E> {
      */
     Future<Void> delete(SqlConnection conn, ID id);
 
+    default Future<Void> deleteAll(Collection<ID> ids) {
+        return getPool().withConnection(conn -> deleteAll(conn, ids));
+    }
+
+    Future<Void> deleteAll(SqlConnection conn, Collection<ID> ids);
+
+    default Future<Void> deleteAll() {
+        return getPool().withConnection(this::deleteAll);
+    }
+
+    Future<Void> deleteAll(SqlConnection conn);
     /**
      * <p>find.</p>
      *
