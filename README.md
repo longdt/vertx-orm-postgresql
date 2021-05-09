@@ -2,14 +2,13 @@
 Simple API focusing on scalability and low overhead.
 
 Reactive and non blocking which able to handle many database connections with a single thread by use `vertx-pg-client`.
+### Release version 2.2.1
+* Upgrade Vertx to 4.0.3
+* Add batch methods: `saveAll`, `insertAll`, `updateAll`, `updateDynamicAll`, `deleteAll`
 ### Release version 2.1.0
-* Add `CrudRepository` methods update/updateDynamic with `Query` param
+* Add `CrudRepository` methods `update/updateDynamic` with `Query` param
 * Fix bug incorrect totalElements when find page
 * Fix bug update non-existed entity
-### Release version 2.0.0
-* Upgrade Vertx to 4.0.0
-* Removal of the Callback-API
-* Optimize Query implementation to generate sql string effectively
 ## Developers
 ### Testing
 Out of the box, the test suite runs a Docker container using TestContainers.
@@ -18,7 +17,7 @@ Out of the box, the test suite runs a Docker container using TestContainers.
 <dependency>
     <groupId>com.github.longdt</groupId>
     <artifactId>vertx-orm-postgresql</artifactId>
-    <version>2.1.0</version>
+    <version>2.2.1</version>
 </dependency>
 
 <dependency>
