@@ -302,6 +302,20 @@ class RuleTemplateRepositoryImplTest extends DatabaseTestCase {
     }
 
     @Test
+    void findAllIn(Vertx vertx, VertxTestContext testContext) {
+        awaitCompletion(this::insert, vertx);
+        repository.findAll(QueryFactory.in("id", 1, 2, 3, 4))
+                .onComplete(testContext.succeeding(rs -> testContext.verify(() -> {
+                    assertEquals(rs.size(), 1);
+                    var entity = rs.get(0);
+                    assertNotNull(entity);
+                    assertEquals(entity.getId(), 1);
+                    assertTrue(entity.getActive());
+                    testContext.completeNow();
+                })));
+    }
+
+    @Test
     void findPage(Vertx vertx, VertxTestContext testContext) {
         awaitCompletion(this::insert, vertx);
         repository.findAll(QueryFactory.equal("id", 1), new PageRequest(1, 20))
