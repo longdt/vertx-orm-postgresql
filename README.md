@@ -2,7 +2,8 @@
 Simple API focusing on scalability and low overhead.
 
 Reactive and non blocking which able to handle many database connections with a single thread by use `vertx-pg-client`.
-### Release version 2.2.1
+### Release version 2.2.2
+* JsonB column now support `Buffer` data type
 * Upgrade Vertx to 4.0.3
 * Add batch methods: `saveAll`, `insertAll`, `updateAll`, `updateDynamicAll`, `deleteAll`
 ### Release version 2.1.0
@@ -17,7 +18,7 @@ Out of the box, the test suite runs a Docker container using TestContainers.
 <dependency>
     <groupId>com.github.longdt</groupId>
     <artifactId>vertx-orm-postgresql</artifactId>
-    <version>2.2.1</version>
+    <version>2.2.2</version>
 </dependency>
 
 <dependency>
