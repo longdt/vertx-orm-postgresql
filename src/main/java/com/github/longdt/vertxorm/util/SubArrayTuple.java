@@ -32,7 +32,7 @@ public class SubArrayTuple implements TupleInternal {
      * {@inheritDoc}
      */
     @Override
-    public Object getValue(int pos) {
+    public Object getValueInternal(int pos) {
         return values[pos + offset];
     }
 
