@@ -2,6 +2,9 @@
 Simple API focusing on scalability and low overhead.
 
 Reactive and non blocking which able to handle many database connections with a single thread by use `vertx-pg-client`.
+### Release version 2.3.0
+* Upgrade Vertx to 4.2.3
+* Add new methods: `merge`, `mergeAll`, `merge` with `Query`
 ### Release version 2.2.2
 * JsonB column now support `Buffer` data type
 * Upgrade Vertx to 4.0.3
@@ -18,7 +21,7 @@ Out of the box, the test suite runs a Docker container using TestContainers.
 <dependency>
     <groupId>com.github.longdt</groupId>
     <artifactId>vertx-orm-postgresql</artifactId>
-    <version>2.2.2</version>
+    <version>2.3.0</version>
 </dependency>
 
 <dependency>
