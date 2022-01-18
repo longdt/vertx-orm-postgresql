@@ -364,4 +364,68 @@ class RuleTemplateRepositoryImplTest extends DatabaseTestCase {
         repository.deleteAll(List.of(1, 2))
                 .onComplete(testContext.succeedingThenComplete());
     }
+
+    @Test
+    void merge(Vertx vertx, VertxTestContext testContext) {
+        awaitCompletion(this::insertAll, vertx);
+        repository.merge(new RuleTemplate().setName("MEREGE").setId(1))
+                .onComplete(testContext.succeeding(entity -> testContext.verify(() -> {
+                    assertNotNull(entity);
+                    assertEquals(entity.getId(), 1);
+                    assertFalse(entity.getActive());
+                    assertEquals("MEREGE", entity.getName());
+                    assertEquals("Flink Job", entity.getFlinkJob());
+                    testContext.completeNow();
+                })));
+    }
+
+    @Test
+    void mergeAll(Vertx vertx, VertxTestContext testContext) {
+        awaitCompletion(this::insertAll, vertx);
+        repository.mergeAll(List.of(new RuleTemplate().setName("MEREGE1").setId(1), new RuleTemplate().setName("MEREGE2").setId(2)))
+                .onComplete(testContext.succeeding(entities -> testContext.verify(() -> {
+                    assertEquals(2, entities.size());
+                    var entity = ((List<RuleTemplate>) entities).get(0);
+                    assertNotNull(entity);
+                    assertEquals(entity.getId(), 1);
+                    assertFalse(entity.getActive());
+                    assertEquals("MEREGE1", entity.getName());
+                    assertEquals("Flink Job", entity.getFlinkJob());
+
+                    entity = ((List<RuleTemplate>) entities).get(1);
+                    assertNotNull(entity);
+                    assertEquals(entity.getId(), 2);
+                    assertFalse(entity.getActive());
+                    assertEquals("MEREGE2", entity.getName());
+                    assertEquals("Flink Job 2", entity.getFlinkJob());
+                    testContext.completeNow();
+                })));
+    }
+
+    @Test
+    void mergeQuery_Success(Vertx vertx, VertxTestContext testContext) {
+        awaitCompletion(this::insertAll, vertx);
+        repository.merge(new RuleTemplate().setName("MEREGE").setId(1), QueryFactory.equal("active", true))
+                .onComplete(testContext.succeeding(entity -> testContext.verify(() -> {
+                    assertNotNull(entity);
+                    assertEquals(entity.getId(), 1);
+                    assertFalse(entity.getActive());
+                    assertEquals("MEREGE", entity.getName());
+                    assertEquals("Flink Job", entity.getFlinkJob());
+                    testContext.completeNow();
+                })));
+    }
+
+    @Test
+    void mergeQuery_NotFound(Vertx vertx, VertxTestContext testContext) {
+        awaitCompletion(this::insertAll, vertx);
+        repository.merge(new RuleTemplate().setName("MEREGE").setId(1), QueryFactory.equal("active", false))
+                .onComplete(testContext.failing(t -> testContext.verify(() -> {
+                    if (t instanceof EntityNotFoundException) {
+                        testContext.completeNow();
+                    } else {
+                        testContext.failNow(t);
+                    }
+                })));
+    }
 }

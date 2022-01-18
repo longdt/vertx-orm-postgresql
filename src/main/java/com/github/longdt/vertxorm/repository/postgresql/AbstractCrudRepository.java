@@ -172,6 +172,13 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
         return existedEntities;
     }
 
+    private Collection<E> collectExistedEntities(RowSet<E> rows, Collection<E> existedEntities) {
+        do {
+            existedEntities.add(rows.rowCount() == 1 ? rows.iterator().next() : null);
+        } while ((rows = rows.next()) != null);
+        return existedEntities;
+    }
+
     @Override
     public Future<E> update(SqlConnection conn, E entity, Query<E> query) {
         var params = parametersMapper.apply(entity);
@@ -301,6 +308,96 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 .map(entities);
     }
 
+
+    public Future<E> merge(SqlConnection conn, E entity) {
+        var params = parametersMapper.apply(entity);
+        var id = params[0];
+        if (id == null) {
+            return Future.failedFuture(new IllegalArgumentException("id field must be set"));
+        }
+        var sqlBuilder = new StringBuilder();
+        int idx = sqlSupport.getUpdateDynamicSql(sqlBuilder, params);
+        if (idx == 1) {
+            return Future.succeededFuture();
+        }
+        idx = 1;
+        for (int i = 1; i < params.length; ++i) {
+            if (params[i] != null) {
+                params[idx++] = params[i];
+            }
+        }
+        sqlBuilder.append(sqlSupport.getReturningAllSql());
+        return conn.preparedQuery(sqlBuilder.toString())
+                .mapping(rowMapper)
+                .execute(Tuples.sub(params, 0, idx))
+                .map(rowSet -> {
+                    if (rowSet.rowCount() == 1) {
+                        return rowSet.iterator().next();
+                    } else {
+                        throw new EntityNotFoundException("Entity with id: " + params[0] + " is not found");
+                    }
+                });
+    }
+
+    public Future<Collection<E>> mergeAll(SqlConnection conn, Collection<E> entities) {
+        if (entities.isEmpty()) {
+            return Future.succeededFuture();
+        }
+        var entity = entities.iterator().next();
+        var params = parametersMapper.apply(entity);
+        var sqlBuilder = new StringBuilder();
+        int idx = sqlSupport.getUpdateDynamicSql(sqlBuilder, params);
+        if (idx == 1) {
+            return Future.succeededFuture();
+        }
+
+        var batch = toBatch(entities, entityParams -> {
+            int nonNullIdx = 1;
+            for (int i = 1; i < entityParams.length; ++i) {
+                if (entityParams[i] != null) {
+                    entityParams[nonNullIdx++] = entityParams[i];
+                }
+            }
+            return Tuples.sub(entityParams, 0, nonNullIdx);
+        });
+        sqlBuilder.append(sqlSupport.getReturningAllSql());
+        return conn.preparedQuery(sqlBuilder.toString())
+                .mapping(rowMapper)
+                .executeBatch(batch)
+                .map(rows -> collectExistedEntities(rows, new ArrayList<>(entities.size())));
+    }
+
+    public Future<E> merge(SqlConnection conn, E entity, Query<E> query) {
+        var params = parametersMapper.apply(entity);
+        var id = params[0];
+        if (id == null) {
+            return Future.failedFuture(new IllegalArgumentException("id field must be set"));
+        }
+        var sqlBuilder = new StringBuilder();
+        int idx = sqlSupport.getUpdateDynamicSql(sqlBuilder, params, query);
+        var paramsTuple = new ArrayTuple(idx).addValue(id);
+        for (int i = 1; i < params.length; ++i) {
+            if (params[i] != null) {
+                paramsTuple.addValue(params[i]);
+            }
+        }
+        if (paramsTuple.size() == 1) {
+            return Future.succeededFuture();
+        }
+        query.appendQueryParams(paramsTuple);
+        sqlBuilder.append(sqlSupport.getReturningAllSql());
+        return conn.preparedQuery(sqlBuilder.toString())
+                .mapping(rowMapper)
+                .execute(paramsTuple)
+                .map(rowSet -> {
+                    if (rowSet.rowCount() == 1) {
+                        return rowSet.iterator().next();
+                    } else {
+                        throw new EntityNotFoundException("Entity with id: " + params[0] + " is not found");
+                    }
+                });
+    }
+
     /**
      * <p>delete.</p>
      *
@@ -352,16 +449,6 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
     }
 
     /**
-     * <p>toList.</p>
-     *
-     * @param sqlResult a {@link io.vertx.sqlclient.SqlResult} object.
-     * @return a {@link java.util.List} object.
-     */
-    protected List<E> toList(SqlResult<List<E>> sqlResult) {
-        return sqlResult.value();
-    }
-
-    /**
      * <p>toEntity.</p>
      *
      * @param rowSet a {@link io.vertx.sqlclient.RowSet} object.
@@ -381,7 +468,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
         return conn.query(sqlSupport.getQuerySql())
                 .collecting(collector)
                 .execute()
-                .map(this::toList);
+                .map(SqlResult::value);
     }
 
     /**
@@ -394,7 +481,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
         return conn.preparedQuery(sql)
                 .collecting(collector)
                 .execute(params)
-                .map(this::toList);
+                .map(SqlResult::value);
     }
 
     /**

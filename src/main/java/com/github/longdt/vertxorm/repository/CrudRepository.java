@@ -118,6 +118,24 @@ public interface CrudRepository<ID, E> {
 
     Future<Void> updateDynamic(SqlConnection conn, E entity, Query<E> query);
 
+    default Future<E> merge(E entity) {
+        return getPool().withConnection(conn -> merge(conn, entity));
+    }
+
+    Future<E> merge(SqlConnection conn, E entity);
+
+    default Future<Collection<E>> mergeAll(Collection<E> entities) {
+        return getPool().withConnection(conn -> mergeAll(conn, entities));
+    }
+
+    Future<Collection<E>> mergeAll(SqlConnection conn, Collection<E> entities);
+
+    default Future<E> merge(E entity, Query<E> query) {
+        return getPool().withConnection(conn -> merge(conn, entity, query));
+    }
+
+    Future<E> merge(SqlConnection conn, E entity, Query<E> query);
+
     /**
      * <p>delete.</p>
      *

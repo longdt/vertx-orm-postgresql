@@ -28,6 +28,7 @@ public class SqlSupportImpl implements SqlSupport {
     private final String existByIdSql;
     private final String deleteSql;
     private final String deleteByIdSql;
+    private final String returningAllSql;
 
     /**
      * <p>Constructor for SqlSupportImpl.</p>
@@ -38,9 +39,8 @@ public class SqlSupportImpl implements SqlSupport {
     public SqlSupportImpl(String tableName, List<String> columnNames) {
         this.tableName = Objects.requireNonNull(tableName);
         this.columnNames = Objects.requireNonNull(columnNames);
-        insertSql = "INSERT INTO \"" + tableName + "\" "
-                + columnNames.stream().map(c -> "\"" + c + "\"").collect(Collectors.joining(",", "(", ")"))
-                + " VALUES "
+        var columnNamesStr = columnNames.stream().map(c -> "\"" + c + "\"").collect(Collectors.joining(","));
+        insertSql = "INSERT INTO \"" + tableName + "\" (" + columnNamesStr + ") VALUES "
                 + IntStream.rangeClosed(1, columnNames.size()).mapToObj(idx -> "$" + idx).collect(Collectors.joining(",", "(", ")"));
         autoIdInsertSql = "INSERT INTO \"" + tableName + "\" "
                 + columnNames.stream().skip(1).map(c -> "\"" + c + "\"").collect(Collectors.joining(",", "(", ")"))
@@ -53,14 +53,14 @@ public class SqlSupportImpl implements SqlSupport {
         updateSql = "UPDATE \"" + tableName + "\""
                 + " SET " + IntStream.range(1, columnNames.size()).mapToObj(idx -> "\"" + columnNames.get(idx) + "\" = $" + (idx + 1)).collect(Collectors.joining(","))
                 + " WHERE \"" + getIdName() + "\" = $1";
-        querySql = "SELECT " + columnNames.stream().map(c -> "\"" + c + "\"").collect(Collectors.joining(","))
-                + " FROM \"" + tableName + "\"";
+        querySql = "SELECT " + columnNamesStr + " FROM \"" + tableName + "\"";
         queryByIdSql = querySql + " WHERE \"" + getIdName() + "\" = $1";
         countSql = "SELECT count(*) FROM \"" + tableName + "\"";
         existSql = "SELECT 1 FROM \"" + tableName + "\"";
         existByIdSql = existSql + " WHERE \"" + getIdName() + "\" = $1 LIMIT 1";
         deleteSql = "DELETE FROM \"" + tableName + "\"";
         deleteByIdSql = deleteSql + " WHERE \"" + getIdName() + "\" = $1";
+        returningAllSql = " RETURNING " + columnNamesStr;
     }
 
     /**
@@ -199,5 +199,9 @@ public class SqlSupportImpl implements SqlSupport {
     @Override
     public String getDeleteByIdSql() {
         return deleteByIdSql;
+    }
+
+    public String getReturningAllSql() {
+        return returningAllSql;
     }
 }

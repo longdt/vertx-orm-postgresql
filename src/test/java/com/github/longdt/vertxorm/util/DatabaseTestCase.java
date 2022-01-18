@@ -34,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Testcontainers
 public abstract class DatabaseTestCase {
-    private static final boolean USE_CONTAINER = false;
+    private static final boolean USE_CONTAINER = true;
     private static final int DEFAULT_AWAIT_TIME_SECONDS = 10;
     private static final String SQL_FOLDER = "src/test/resources/migration/";
     private static final String SQL_TEST_FOLDER = "src/test/resources/script/";
