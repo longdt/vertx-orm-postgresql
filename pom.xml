@@ -5,7 +5,7 @@
 
     <groupId>com.github.longdt</groupId>
     <artifactId>vertx-orm-postgresql</artifactId>
-    <version>2.2.2</version>
+    <version>2.3.0</version>
     <modelVersion>4.0.0</modelVersion>
 
     <name>Vertx ORM PostgreSQL</name>
