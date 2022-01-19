@@ -65,7 +65,7 @@ public abstract class DatabaseTestCase {
 
     private static void initFromContainerEnv() {
         var pgSQLContainer = new PostgreSQLContainer<>(PostgreSQLContainer.IMAGE)
-                .withTmpFs(Collections.singletonMap("/var/lib/mysql", "rw"));
+                .withTmpFs(Collections.singletonMap("/var/lib/postgresql/data", "rw"));
         pgSQLContainer.start();
 
         database = pgSQLContainer.getDatabaseName();

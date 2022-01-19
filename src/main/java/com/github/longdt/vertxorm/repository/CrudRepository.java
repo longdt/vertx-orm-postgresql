@@ -136,6 +136,12 @@ public interface CrudRepository<ID, E> {
 
     Future<E> merge(SqlConnection conn, E entity, Query<E> query);
 
+    default Future<List<E>> mergeAll(E entity, Query<E> query) {
+        return getPool().withConnection(conn -> mergeAll(conn, entity, query));
+    }
+
+    Future<List<E>> mergeAll(SqlConnection conn, E entity, Query<E> query);
+
     /**
      * <p>delete.</p>
      *

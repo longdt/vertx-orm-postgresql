@@ -403,6 +403,29 @@ class RuleTemplateRepositoryImplTest extends DatabaseTestCase {
     }
 
     @Test
+    void mergeAllQuery(Vertx vertx, VertxTestContext testContext) {
+        awaitCompletion(this::insertAll, vertx);
+        repository.mergeAll(new RuleTemplate(), QueryFactory.equal("active", true))
+                .onComplete(testContext.succeeding(entities -> testContext.verify(() -> {
+                    assertEquals(2, entities.size());
+                    var entity = ((List<RuleTemplate>) entities).get(0);
+                    assertNotNull(entity);
+                    assertEquals(entity.getId(), 1);
+                    assertFalse(entity.getActive());
+                    assertEquals(DEFAULT_RULE_TEMPLATE_NAME, entity.getName());
+                    assertEquals("Flink Job", entity.getFlinkJob());
+
+                    entity = ((List<RuleTemplate>) entities).get(1);
+                    assertNotNull(entity);
+                    assertEquals(entity.getId(), 2);
+                    assertFalse(entity.getActive());
+                    assertEquals(DEFAULT_RULE_TEMPLATE_NAME, entity.getName());
+                    assertEquals("Flink Job 2", entity.getFlinkJob());
+                    testContext.completeNow();
+                })));
+    }
+
+    @Test
     void mergeQuery_Success(Vertx vertx, VertxTestContext testContext) {
         awaitCompletion(this::insertAll, vertx);
         repository.merge(new RuleTemplate().setName("MEREGE").setId(1), QueryFactory.equal("active", true))

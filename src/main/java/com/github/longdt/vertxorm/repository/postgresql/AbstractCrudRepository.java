@@ -308,7 +308,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 .map(entities);
     }
 
-
+    @Override
     public Future<E> merge(SqlConnection conn, E entity) {
         var params = parametersMapper.apply(entity);
         var id = params[0];
@@ -339,6 +339,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 });
     }
 
+    @Override
     public Future<Collection<E>> mergeAll(SqlConnection conn, Collection<E> entities) {
         if (entities.isEmpty()) {
             return Future.succeededFuture();
@@ -367,6 +368,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 .map(rows -> collectExistedEntities(rows, new ArrayList<>(entities.size())));
     }
 
+    @Override
     public Future<E> merge(SqlConnection conn, E entity, Query<E> query) {
         var params = parametersMapper.apply(entity);
         var id = params[0];
@@ -398,6 +400,28 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
                 });
     }
 
+    @Override
+    public Future<List<E>> mergeAll(SqlConnection conn, E entity, Query<E> query) {
+        var params = parametersMapper.apply(entity);
+        var sqlBuilder = new StringBuilder();
+        int idx = sqlSupport.getUpdateDynamicAllSql(sqlBuilder, params, query);
+        var paramsTuple = new ArrayTuple(idx);
+        for (int i = 1; i < params.length; ++i) {
+            if (params[i] != null) {
+                paramsTuple.addValue(params[i]);
+            }
+        }
+        if (paramsTuple.size() == 0) {
+            return Future.succeededFuture();
+        }
+        query.appendQueryParams(paramsTuple);
+        sqlBuilder.append(sqlSupport.getReturningAllSql());
+        return conn.preparedQuery(sqlBuilder.toString())
+                .collecting(collector)
+                .execute(paramsTuple)
+                .map(SqlResult::value);
+    }
+
     /**
      * <p>delete.</p>
      *
@@ -405,6 +429,7 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
      * @param id   a ID object.
      * @return a {@link io.vertx.core.Future} object.
      */
+    @Override
     public Future<Void> delete(SqlConnection conn, ID id) {
         return conn.preparedQuery(sqlSupport.getDeleteByIdSql())
                 .execute(Tuple.of(idAccessor.id2DbValue(id)))

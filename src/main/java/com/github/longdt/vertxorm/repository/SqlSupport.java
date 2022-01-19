@@ -48,6 +48,10 @@ public interface SqlSupport {
 
     <E> int getUpdateDynamicSql(StringBuilder sqlBuilder, Object[] params, Query<E> query);
 
+    int getUpdateDynamicAllSql(StringBuilder sqlBuilder, Object[] params);
+
+    <E> int getUpdateDynamicAllSql(StringBuilder sqlBuilder, Object[] params, Query<E> query);
+
     /**
      * <p>getQuerySql.</p>
      *
