@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static com.github.longdt.vertxorm.repository.query.QueryFactory.equal;
 import static org.junit.jupiter.api.Assertions.*;
 
 class RuleTemplateRepositoryImplTest extends DatabaseTestCase {
@@ -181,7 +182,7 @@ class RuleTemplateRepositoryImplTest extends DatabaseTestCase {
                 .setArguments(Collections.emptyMap())
                 .setUpdatedAt(now)
                 .setId(1);
-        repository.update(template, QueryFactory.equal("active", true))
+        repository.update(template, equal("active", true))
                 .onComplete(testContext.succeeding(entity -> testContext.verify(() -> {
                     assertNotNull(entity);
                     assertEquals(entity.getId(), 1);
@@ -203,7 +204,7 @@ class RuleTemplateRepositoryImplTest extends DatabaseTestCase {
                 .setArguments(Collections.emptyMap())
                 .setUpdatedAt(now)
                 .setId(1);
-        repository.update(template, QueryFactory.equal("active", false))
+        repository.update(template, equal("active", false))
                 .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
                     assertEquals(throwable.getClass(), EntityNotFoundException.class);
                     testContext.completeNow();
@@ -248,7 +249,7 @@ class RuleTemplateRepositoryImplTest extends DatabaseTestCase {
         var template = new RuleTemplate()
                 .setName("A Random Name")
                 .setId(1);
-        repository.updateDynamic(template, QueryFactory.equal("active", true))
+        repository.updateDynamic(template, equal("active", true))
                 .compose(r -> repository.find(1))
                 .map(Optional::orElseThrow)
                 .onComplete(testContext.succeeding(entity -> testContext.verify(() -> {
@@ -267,7 +268,7 @@ class RuleTemplateRepositoryImplTest extends DatabaseTestCase {
         var template = new RuleTemplate()
                 .setName("A Random Name")
                 .setId(1);
-        repository.updateDynamic(template, QueryFactory.equal("active", false))
+        repository.updateDynamic(template, equal("active", false))
                 .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
                     assertEquals(throwable.getClass(), EntityNotFoundException.class);
                     testContext.completeNow();
@@ -318,7 +319,7 @@ class RuleTemplateRepositoryImplTest extends DatabaseTestCase {
     @Test
     void findPage(Vertx vertx, VertxTestContext testContext) {
         awaitCompletion(this::insert, vertx);
-        repository.findAll(QueryFactory.equal("id", 1), new PageRequest(1, 20))
+        repository.findAll(equal("id", 1), new PageRequest(1, 20))
                 .onComplete(testContext.succeeding(rs -> testContext.verify(() -> {
                     assertEquals(rs.getTotalElements(), 1);
                     var entity = rs.getContent().get(0);
@@ -405,19 +406,19 @@ class RuleTemplateRepositoryImplTest extends DatabaseTestCase {
     @Test
     void mergeAllQuery(Vertx vertx, VertxTestContext testContext) {
         awaitCompletion(this::insertAll, vertx);
-        repository.mergeAll(new RuleTemplate(), QueryFactory.equal("active", true))
+        repository.mergeAll(new RuleTemplate(), equal("active", true))
                 .onComplete(testContext.succeeding(entities -> testContext.verify(() -> {
                     assertEquals(2, entities.size());
                     var entity = ((List<RuleTemplate>) entities).get(0);
                     assertNotNull(entity);
-                    assertEquals(entity.getId(), 1);
+                    assertEquals(1, entity.getId());
                     assertFalse(entity.getActive());
                     assertEquals(DEFAULT_RULE_TEMPLATE_NAME, entity.getName());
                     assertEquals("Flink Job", entity.getFlinkJob());
 
                     entity = ((List<RuleTemplate>) entities).get(1);
                     assertNotNull(entity);
-                    assertEquals(entity.getId(), 2);
+                    assertEquals(2, entity.getId());
                     assertFalse(entity.getActive());
                     assertEquals(DEFAULT_RULE_TEMPLATE_NAME, entity.getName());
                     assertEquals("Flink Job 2", entity.getFlinkJob());
@@ -428,7 +429,7 @@ class RuleTemplateRepositoryImplTest extends DatabaseTestCase {
     @Test
     void mergeQuery_Success(Vertx vertx, VertxTestContext testContext) {
         awaitCompletion(this::insertAll, vertx);
-        repository.merge(new RuleTemplate().setName("MEREGE").setId(1), QueryFactory.equal("active", true))
+        repository.merge(new RuleTemplate().setName("MEREGE").setId(1), equal("active", true))
                 .onComplete(testContext.succeeding(entity -> testContext.verify(() -> {
                     assertNotNull(entity);
                     assertEquals(entity.getId(), 1);
@@ -442,13 +443,33 @@ class RuleTemplateRepositoryImplTest extends DatabaseTestCase {
     @Test
     void mergeQuery_NotFound(Vertx vertx, VertxTestContext testContext) {
         awaitCompletion(this::insertAll, vertx);
-        repository.merge(new RuleTemplate().setName("MEREGE").setId(1), QueryFactory.equal("active", false))
+        repository.merge(new RuleTemplate().setName("MEREGE").setId(1), equal("active", false))
                 .onComplete(testContext.failing(t -> testContext.verify(() -> {
                     if (t instanceof EntityNotFoundException) {
                         testContext.completeNow();
                     } else {
                         testContext.failNow(t);
                     }
+                })));
+    }
+
+    @Test
+    void updateDynamicAllQuery_Success(Vertx vertx, VertxTestContext testContext) {
+        awaitCompletion(this::insertAll, vertx);
+        repository.updateDynamicAll(new RuleTemplate(), equal("active", true))
+                .onComplete(testContext.succeeding(updated -> testContext.verify(() -> {
+                    assertEquals(2, updated);
+                    testContext.completeNow();
+                })));
+    }
+
+    @Test
+    void updateDynamicAllQuery_Success1(Vertx vertx, VertxTestContext testContext) {
+        awaitCompletion(this::insertAll, vertx);
+        repository.updateDynamicAll(new RuleTemplate(), QueryFactory.and(equal("active", true), equal("id", 1)))
+                .onComplete(testContext.succeeding(updated -> testContext.verify(() -> {
+                    assertEquals(1, updated);
+                    testContext.completeNow();
                 })));
     }
 }

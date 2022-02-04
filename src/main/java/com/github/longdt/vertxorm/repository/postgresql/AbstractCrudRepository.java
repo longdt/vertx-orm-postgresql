@@ -265,6 +265,26 @@ public abstract class AbstractCrudRepository<ID, E> implements CrudRepository<ID
     }
 
     @Override
+    public Future<Integer> updateDynamicAll(SqlConnection conn, E entity, Query<E> query) {
+        var params = parametersMapper.apply(entity);
+        var sqlBuilder = new StringBuilder();
+        int idx = sqlSupport.getUpdateDynamicAllSql(sqlBuilder, params, query);
+        var paramsTuple = new ArrayTuple(idx);
+        for (int i = 1; i < params.length; ++i) {
+            if (params[i] != null) {
+                paramsTuple.addValue(params[i]);
+            }
+        }
+        if (paramsTuple.size() == 0) {
+            return Future.succeededFuture();
+        }
+        query.appendQueryParams(paramsTuple);
+        return conn.preparedQuery(sqlBuilder.toString())
+                .execute(paramsTuple)
+                .map(RowSet::rowCount);
+    }
+
+    @Override
     public Future<Void> updateDynamic(SqlConnection conn, E entity, Query<E> query) {
         var params = parametersMapper.apply(entity);
         var id = params[0];

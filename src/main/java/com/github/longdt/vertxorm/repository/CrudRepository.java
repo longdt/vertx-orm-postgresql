@@ -112,6 +112,12 @@ public interface CrudRepository<ID, E> {
 
     Future<Collection<Boolean>> updateDynamicAll(SqlConnection conn, Collection<E> entities);
 
+    default Future<Integer> updateDynamicAll(E entity, Query<E> query) {
+        return getPool().withConnection(conn -> updateDynamicAll(conn, entity, query));
+    }
+
+    Future<Integer> updateDynamicAll(SqlConnection conn, E entity, Query<E> query);
+
     default Future<Void> updateDynamic(E entity, Query<E> query) {
         return getPool().withConnection(conn -> updateDynamic(conn, entity, query));
     }
