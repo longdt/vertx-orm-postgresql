@@ -1,3 +1,4 @@
+# Project was moved to new repo: https://github.com/longdt/vertx-orm
 ## Vertx-Orm-Postgresql
 Simple API focusing on scalability and low overhead.
 
