@@ -56,7 +56,7 @@
         <junit-jupiter.version>5.7.0</junit-jupiter.version>
         <assertj-core.version>3.17.2</assertj-core.version>
         <testcontainers.version>1.15.1</testcontainers.version>
-        <jackson.version>2.13.1</jackson.version>
+        <jackson.version>2.13.2.1</jackson.version>
     </properties>
 
     <dependencies>
